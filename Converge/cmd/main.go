@@ -2,9 +2,11 @@ package main
 
 import (
 	"Converge/internal/config"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
+	"Converge/internal/models"
+	"Converge/internal/repository"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 )
 
@@ -14,11 +16,17 @@ func main() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	db, err := sql.Open("mysql", cfg.DatabaseDSN)
+	db, err := gorm.Open(mysql.Open(cfg.DatabaseDSN), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
-	defer db.Close()
+
+	if err := db.AutoMigrate(&models.User{}, &models.Role{}); err != nil {
+		log.Fatalf("Error migrating database: %v", err)
+	}
+
+	userRepo := repository.NewUserRepository(db)
+	roleRepo := repository.NewRoleRepository(db)
 
 	app := fiber.New()
 
