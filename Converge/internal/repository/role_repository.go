@@ -9,6 +9,8 @@ type RoleRepository interface {
 	GetByID(int64) (*model.Role, error)
 	Create(*model.Role) error
 	FindAll() ([]*model.Role, error)
+	Delete(int64) error
+	Update(*model.Role) error
 }
 
 type roleRepositoryImpl struct{ db *gorm.DB }
@@ -37,4 +39,12 @@ func (r *roleRepositoryImpl) FindAll() ([]*model.Role, error) {
 	}
 
 	return roles, nil
+}
+
+func (r *roleRepositoryImpl) Delete(id int64) error {
+	return r.db.Delete(&model.Role{}, id).Error
+}
+
+func (r *roleRepositoryImpl) Update(role *model.Role) error {
+	return r.db.Save(role).Error
 }
