@@ -2,7 +2,7 @@ package main
 
 import (
 	"Converge/internal/config"
-	"Converge/internal/hadler"
+	"Converge/internal/handler"
 	"Converge/internal/model"
 	"Converge/internal/repository"
 	"Converge/internal/service"
@@ -57,9 +57,9 @@ func main() {
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры
-	userH := hadler.NewUserHandler(userSvc)
-	roleH := hadler.NewRoleHandler(roleSvc)
-	authH := hadler.NewAuthHandler(authSvc)
+	userH := handler.NewUserHandler(userSvc)
+	roleH := handler.NewRoleHandler(roleSvc)
+	authH := handler.NewAuthHandler(authSvc)
 
 	// Fiber и маршруты
 	app := fiber.New()
