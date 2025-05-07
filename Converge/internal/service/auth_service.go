@@ -4,7 +4,6 @@ import (
 	"Converge/internal/model"
 	"Converge/internal/repository"
 	"errors"
-	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -38,10 +37,11 @@ func (s *authServiceImpl) Authenticate(login, password string) (*model.User, err
 }
 
 func (s *authServiceImpl) GenerateToken(user *model.User) (string, error) {
-	claims := jwt.RegisteredClaims{
-		Subject:   fmt.Sprint(user.ID),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Hour)),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
+	claims := jwt.MapClaims{
+		"sub":  user.ID,
+		"role": user.Role.Name,
+		"exp":  time.Now().Add(time.Hour * 10).Unix(),
+		"iat":  time.Now().Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

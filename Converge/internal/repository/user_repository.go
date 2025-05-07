@@ -2,6 +2,7 @@ package repository
 
 import (
 	"Converge/internal/model"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +23,8 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 
 func (r *userRepositoryImpl) GetByLogin(login string) (*model.User, error) {
 	var user model.User
-	if err := r.db.Where("login = ?", login).First(&user).Error; err != nil {
+	fmt.Printf("login: %s", login)
+	if err := r.db.Preload("Role").Where("login = ?", login).First(&user).Error; err != nil {
 		return nil, err
 	}
 

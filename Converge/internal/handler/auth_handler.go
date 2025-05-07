@@ -15,7 +15,7 @@ func NewAuthHandler(svc service.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(app *fiber.App) {
-	app.Post("/api/login")
+	app.Post("/api/login", h.Login)
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {

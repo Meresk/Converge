@@ -61,8 +61,12 @@ func main() {
 	roleH := handler.NewRoleHandler(roleSvc)
 	authH := handler.NewAuthHandler(authSvc)
 
+	//authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
+
 	// Fiber и маршруты
 	app := fiber.New()
+	//app.Use("/api/users", authMW.RequireAdmin())
+	//app.Use("/api/roles", authMW.RequireAdmin())
 	userH.Register(app)
 	roleH.Register(app)
 	authH.Register(app)
