@@ -27,7 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
-	if err := db.AutoMigrate(&model.User{}, &model.Role{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.Role{}, &model.Room{}, &model.Participant{}, &model.Message{}); err != nil {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 
@@ -50,10 +50,12 @@ func main() {
 	// Репозитории
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
+	roomRepo := repository.NewRoomRepository(db)
 
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
+	roomSvc := service.NewRoomService(roomRepo)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры

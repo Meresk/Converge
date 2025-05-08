@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"Converge/internal/model"
+	"Converge/internal/dto"
 	"Converge/internal/service"
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,7 +19,7 @@ func (h *AuthHandler) Register(app *fiber.App) {
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
-	var req model.LoginRequest
+	var req dto.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request",
