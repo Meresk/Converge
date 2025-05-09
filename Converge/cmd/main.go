@@ -9,7 +9,6 @@ import (
 	"Converge/internal/seed"
 	"Converge/internal/service"
 	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -39,15 +38,19 @@ func main() {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 
+	// LiveKit
+	//client := lksdk.NewRoomServiceClient(cfg.LiveKitServerURL, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
+
 	// Репозитории
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
 	roomRepo := repository.NewRoomRepository(db)
+	participantRepo := repository.NewParticipantRepository(db)
 
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
-	roomSvc := service.NewRoomService(roomRepo)
+	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры

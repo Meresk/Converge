@@ -71,7 +71,30 @@ func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// TODO: сделать разделение по ролям для разных грантов, предположительно можно отправлять за учиетля на этот запрос заголовок авторизации
 func (h *RoomHandler) Join(c *fiber.Ctx) error {
-	// Реализация входа: проверка пароля, сохранение участника и генерация токена LiveKit
-	return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{"error": "not implemented"})
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room id",
+		})
+	}
+
+	var req struct {
+		Nickname string `json:"nickname"`
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid body",
+		})
+	}
+
+	token, err := h.svc.JoinRoom(id, req.Nickname, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{"token": token})
 }

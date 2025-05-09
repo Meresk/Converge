@@ -4,6 +4,7 @@ import (
 	"Converge/internal/model"
 	"Converge/internal/repository"
 	"errors"
+	"github.com/livekit/protocol/auth"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -13,14 +14,52 @@ type RoomService interface {
 	GetAll() ([]*model.Room, error)
 	GetById(id int64) (*model.Room, error)
 	CloseRoom(id int64, ownerID int64) error
+	JoinRoom(roomID int64, nickname, password string) (string, error)
 }
 
 type roomService struct {
-	roomRepo repository.RoomRepository
+	roomRepo        repository.RoomRepository
+	participantRepo repository.ParticipantRepository
+	apiKey          string
+	apiSecret       string
 }
 
-func NewRoomService(roomRepo repository.RoomRepository) RoomService {
-	return &roomService{roomRepo: roomRepo}
+func NewRoomService(rr repository.RoomRepository, pr repository.ParticipantRepository, apiKey, apiSecret string) RoomService {
+	return &roomService{roomRepo: rr, participantRepo: pr, apiKey: apiKey, apiSecret: apiSecret}
+}
+
+func (s *roomService) JoinRoom(roomID int64, nickname, password string) (string, error) {
+	room, err := s.roomRepo.GetById(roomID)
+	if err != nil {
+		return "", errors.New("room Not Found")
+	}
+
+	if room.Password != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(room.Password), []byte(password)); err != nil {
+			return "", errors.New("wrong room password")
+		}
+	}
+
+	p := &model.Participant{
+		Nickname: nickname,
+		RoomID:   roomID,
+		JoinedAt: time.Now(),
+	}
+	err = s.participantRepo.Create(p)
+	if err != nil {
+		return "", err
+	}
+
+	at := auth.NewAccessToken(s.apiKey, s.apiSecret)
+	vg := &auth.VideoGrant{RoomJoin: true, Room: room.Name}
+	at.SetVideoGrant(vg).SetIdentity(nickname).SetValidFor(8 * time.Hour)
+
+	token, err := at.ToJWT()
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (s *roomService) Create(name, password string, ownerID int64) (*model.Room, error) {
