@@ -2,18 +2,16 @@ package main
 
 import (
 	"Converge/internal/config"
+	"Converge/internal/database"
 	"Converge/internal/handler"
 	"Converge/internal/middleware"
-	"Converge/internal/model"
 	"Converge/internal/repository"
+	"Converge/internal/seed"
 	"Converge/internal/service"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -23,29 +21,22 @@ func main() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	// Подключение к БД и миграции
-	db, err := gorm.Open(mysql.Open(cfg.DatabaseDSN), &gorm.Config{})
+	// Подключение к БД
+	db, err := database.NewConnection(cfg.DatabaseDSN)
 	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
-	if err := db.AutoMigrate(&model.User{}, &model.Role{}, &model.Room{}, &model.Participant{}, &model.Message{}); err != nil {
-		log.Fatalf("Error migrating database: %v", err)
+		log.Fatalf("Error with database connection: %v", err)
 	}
 
-	// Создание роли admin и пользователя admin
-	var count int64
-	db.Model(&model.Role{}).Where("name = ?", "admin").Count(&count)
-	if count == 0 {
-		adminRole := model.Role{Name: "admin"}
-		db.Create(&adminRole)
+	// Миграции БД
+	err = database.Migrate(db)
+	if err != nil {
+		log.Fatalf("Error with database migration: %v", err)
+	}
 
-		hashPassword, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-		adminUser := model.User{
-			Login:    "admin",
-			Password: string(hashPassword),
-			RoleID:   adminRole.ID,
-		}
-		db.Create(&adminUser)
+	// Сидинг дефолтных данных в БД
+	err = seed.Run(db)
+	if err != nil {
+		log.Fatalf("Seeding failed: %v", err)
 	}
 
 	// Репозитории
