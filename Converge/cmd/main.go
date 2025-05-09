@@ -2,17 +2,15 @@ package main
 
 import (
 	"Converge/internal/config"
+	"Converge/internal/database"
 	"Converge/internal/handler"
-	"Converge/internal/model"
+	"Converge/internal/middleware"
 	"Converge/internal/repository"
+	"Converge/internal/seed"
 	"Converge/internal/service"
 	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -22,53 +20,52 @@ func main() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	// Подключение к БД и миграции
-	db, err := gorm.Open(mysql.Open(cfg.DatabaseDSN), &gorm.Config{})
+	// Подключение к БД
+	db, err := database.NewConnection(cfg.DatabaseDSN)
 	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
-	if err := db.AutoMigrate(&model.User{}, &model.Role{}); err != nil {
-		log.Fatalf("Error migrating database: %v", err)
+		log.Fatalf("Error with database connection: %v", err)
 	}
 
-	// Создание роли admin и пользователя admin
-	var count int64
-	db.Model(&model.Role{}).Where("name = ?", "admin").Count(&count)
-	if count == 0 {
-		adminRole := model.Role{Name: "admin"}
-		db.Create(&adminRole)
-
-		hashPassword, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-		adminUser := model.User{
-			Login:    "admin",
-			Password: string(hashPassword),
-			RoleID:   adminRole.ID,
-		}
-		db.Create(&adminUser)
+	// Миграции БД
+	err = database.Migrate(db)
+	if err != nil {
+		log.Fatalf("Error with database migration: %v", err)
 	}
 
+	// Сидинг дефолтных данных в БД
+	err = seed.Run(db)
+	if err != nil {
+		log.Fatalf("Seeding failed: %v", err)
+	}
+
+	// LiveKit
+	//client := lksdk.NewRoomServiceClient(cfg.LiveKitServerURL, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)mmin
 	// Репозитории
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
+	roomRepo := repository.NewRoomRepository(db)
+	participantRepo := repository.NewParticipantRepository(db)
 
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
+	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры
 	userH := handler.NewUserHandler(userSvc)
 	roleH := handler.NewRoleHandler(roleSvc)
+	roomH := handler.NewRoomHandler(roomSvc)
 	authH := handler.NewAuthHandler(authSvc)
 
-	//authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
+	// Middlewares
+	authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
 
 	// Fiber и маршруты
 	app := fiber.New()
-	//app.Use("/api/users", authMW.RequireAdmin())
-	//app.Use("/api/roles", authMW.RequireAdmin())
-	userH.Register(app)
+	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
+	roomH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
 	// Запуск сервера

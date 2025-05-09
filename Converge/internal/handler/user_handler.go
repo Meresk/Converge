@@ -15,8 +15,8 @@ func NewUserHandler(s service.UserService) *UserHandler {
 	return &UserHandler{svc: s}
 }
 
-func (h *UserHandler) Register(app *fiber.App) {
-	g := app.Group("/api/users")
+func (h *UserHandler) Register(app *fiber.App, adminOnly fiber.Handler) {
+	g := app.Group("/api/users", adminOnly)
 	g.Get("/", h.GetAll)
 	g.Get("/:id", h.GetByID)
 	g.Post("/", h.Create)
