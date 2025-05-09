@@ -34,7 +34,7 @@ func (h *RoomHandler) Create(c *fiber.Ctx) error {
 		})
 	}
 
-	ownerID := c.Locals("ownerID").(int64)
+	ownerID := c.Locals("userID").(int64)
 	room, err := h.svc.Create(req.Name, req.Password, ownerID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -62,7 +62,7 @@ func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
 			"error": "cannot close room",
 		})
 	}
-	ownerID := c.Locals("ownerID").(int64)
+	ownerID := c.Locals("userID").(int64)
 	if err := h.svc.CloseRoom(id, ownerID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
