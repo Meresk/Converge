@@ -3,6 +3,7 @@ package main
 import (
 	"Converge/internal/config"
 	"Converge/internal/handler"
+	"Converge/internal/middleware"
 	"Converge/internal/model"
 	"Converge/internal/repository"
 	"Converge/internal/service"
@@ -61,16 +62,17 @@ func main() {
 	// Хэндлеры
 	userH := handler.NewUserHandler(userSvc)
 	roleH := handler.NewRoleHandler(roleSvc)
+	roomH := handler.NewRoomHandler(roomSvc)
 	authH := handler.NewAuthHandler(authSvc)
 
-	//authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
+	// Middlewares
+	authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
 
 	// Fiber и маршруты
 	app := fiber.New()
-	//app.Use("/api/users", authMW.RequireAdmin())
-	//app.Use("/api/roles", authMW.RequireAdmin())
-	userH.Register(app)
+	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
+	roomH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
 	// Запуск сервера
