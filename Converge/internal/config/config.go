@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"os"
-	"strconv"
 )
 
 type Config struct {
@@ -13,16 +12,19 @@ type Config struct {
 
 	DatabaseDSN string `env:"DATABASE_DSN,required"`
 	JWTSecret   string `env:"JWT_SECRET_KEY,required"`
-	Port        int    `env:"APP_PORT,required,default=8080"`
+	Port        string `env:"APP_PORT,required,default=8080"`
+
+	AllowOrigins string `env:"CORS_ALLOW_ORIGINS,required"`
+	AllowMethods string `env:"CORS_ALLOW_METHODS,default=GET,POST,PUT,DELETE"`
+	AllowHeaders string `env:"CORS_ALLOW_HEADERS,default=Content-Type,Authorization"`
 }
 
 func LoadConfig() (*Config, error) {
 	_ = godotenv.Load() // dev only
 
-	portStr := os.Getenv("APP_PORT")
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		port = 8080 // дефолт
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080" // дефолт
 	}
 
 	cfg := &Config{
@@ -32,6 +34,9 @@ func LoadConfig() (*Config, error) {
 		DatabaseDSN:      os.Getenv("DATABASE_DSN"),
 		JWTSecret:        os.Getenv("JWT_SECRET_KEY"),
 		Port:             port,
+		AllowOrigins:     os.Getenv("CORS_ALLOW_ORIGINS"),
+		AllowMethods:     os.Getenv("CORS_ALLOW_METHODS"),
+		AllowHeaders:     os.Getenv("CORS_ALLOW_HEADERS"),
 	}
 
 	return cfg, nil
