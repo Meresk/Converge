@@ -17,7 +17,8 @@ func NewRoomHandler(svc service.RoomService) *RoomHandler {
 func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
 	g := app.Group("/api/rooms")
 	g.Post("/", onlyTeacher, h.Create)
-	g.Get("/", h.GetAll)
+	g.Get("/", onlyTeacher, h.GetAll)
+	g.Get("/open", h.GetAllOpenRooms)
 	g.Post("/:id/close", onlyTeacher, h.CloseRoom)
 	g.Post("/:id/join", h.Join)
 }
@@ -42,7 +43,14 @@ func (h *RoomHandler) Create(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(room)
+	return c.JSON(fiber.Map{
+		"id":          room.ID,
+		"name":        room.Name,
+		"ownerID":     room.OwnerID,
+		"isProtected": room.Password != "",
+		"startsAt":    room.StartsAt,
+		"endAt":       room.EndAt,
+	})
 }
 
 func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
@@ -52,7 +60,43 @@ func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
 			"error": "cannot get rooms",
 		})
 	}
-	return c.JSON(rooms)
+
+	response := make([]fiber.Map, len(rooms))
+	for i, room := range rooms {
+		response[i] = fiber.Map{
+			"id":          room.ID,
+			"name":        room.Name,
+			"ownerID":     room.OwnerID,
+			"isProtected": room.Password != "",
+			"startsAt":    room.StartsAt,
+			"endAt":       room.EndAt,
+		}
+	}
+
+	return c.JSON(response)
+}
+
+func (h *RoomHandler) GetAllOpenRooms(c *fiber.Ctx) error {
+	rooms, err := h.svc.GetAllOpenRooms()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "cannot get rooms",
+		})
+	}
+
+	response := make([]fiber.Map, len(rooms))
+	for i, room := range rooms {
+		response[i] = fiber.Map{
+			"id":          room.ID,
+			"name":        room.Name,
+			"ownerID":     room.OwnerID,
+			"isProtected": room.Password != "",
+			"startsAt":    room.StartsAt,
+			"endAt":       room.EndAt,
+		}
+	}
+
+	return c.JSON(response)
 }
 
 func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {

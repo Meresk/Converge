@@ -1,33 +1,70 @@
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Box } from "@mui/material";
+import teacherImg from "../assets/teacherw.png";
+import studentImg from "../assets/studentw.png";
+import {getToken} from "../services/auth/storage.ts";
 
 export default function RoleSelectPage() {
     const navigate = useNavigate();
 
     const onSelectTeacher = () => {
-        navigate('/login');
-    };
-    const onSelectStudent = () => {
-        navigate('/student');
-    };
+        const token = getToken()
+        if (token == null) {
+            navigate("/login");
+        } else {
+            navigate("/teacher");
+        }
+
+    }
+    const onSelectStudent = () => navigate("/student");
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-            <h1 className="text-4xl font-bold mb-8">Выберите роль</h1>
-
-            <div className="grid grid-cols-2 gap-8">
-                <button
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <h1>Кто вы?</h1>
+            <div style={{ display: "flex", gap: "2rem", marginTop: "1rem" }}>
+                <Box
                     onClick={onSelectTeacher}
-                    className="px-8 py-4 bg-blue-600 text-white rounded-lg text-xl hover:bg-blue-700 transition"
+                    sx={{
+                        textAlign: "center",
+                        cursor: "pointer",
+                        '& img': {
+                            width: 200,
+                            height: 200,
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s',
+                        },
+                        '&:hover img': {
+                            transform: 'scale(1.1)',
+                        },
+                    }}
                 >
-                    Я — преподаватель
-                </button>
+                    <img src={teacherImg} alt="Преподаватель" />
+                    <div style={{ marginTop: '0.5rem', color: '#ffffff', fontSize: '1.5rem' }}>
+                        Преподаватель
+                    </div>
+                </Box>
 
-                <button
+                <Box
                     onClick={onSelectStudent}
-                    className="px-8 py-4 bg-green-600 text-white rounded-lg text-xl hover:bg-green-700 transition"
+                    sx={{
+                        textAlign: "center",
+                        cursor: "pointer",
+                        '& img': {
+                            width: 200,
+                            height: 200,
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s',
+                        },
+                        '&:hover img': {
+                            transform: 'scale(1.1)',
+                        },
+                    }}
                 >
-                    Я — ученик
-                </button>
+                    <img src={studentImg} alt="Студент" />
+                    <div style={{ marginTop: '0.5rem', color: '#ffffff', fontSize: '1.5rem' }}>
+                        Студент
+                    </div>
+                </Box>
             </div>
         </div>
     );

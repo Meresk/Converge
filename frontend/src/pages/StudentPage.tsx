@@ -6,11 +6,11 @@ export default function StudentPage() {
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const [rooms, setRooms] = useState<Room[]>([]);
     useEffect(() => {
-        fetch(`${API_BASE}/api/rooms`)
+        fetch(`${API_BASE}/api/rooms/open`)
             .then(r => r.json())
             .then(setRooms);
     }, []);
-    console.log(`${API_BASE}/api/rooms`);
+
     return (
         <div style={{ padding: 20 }}>
             <h1>Доступные комнаты</h1>

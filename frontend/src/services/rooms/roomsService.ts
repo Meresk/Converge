@@ -1,0 +1,43 @@
+import {getToken} from "../auth/storage.ts";
+import type {CreateRoomParams, Room} from "./types.ts";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+
+
+export async function fetchOpenRooms(): Promise<Room[]> {
+    const res = await fetch(`${API_BASE}/api/rooms/open`, {
+        headers: {'Content-Type': 'application/json'},
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message);
+    }
+    return res.json();
+}
+
+export async function fetchRooms(): Promise<Room[]> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/rooms`, {
+        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message);
+    }
+    return res.json();
+}
+
+export async function createRoom(params: CreateRoomParams): Promise<Room> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/rooms`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : ``},
+        body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Create room failed (${res.status})`);
+    }
+    return res.json();
+}
