@@ -20,7 +20,7 @@ func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
 	g.Get("/", onlyTeacher, h.GetAll)
 	g.Get("/open", h.GetAllOpenRooms)
 	g.Post("/:id/close", onlyTeacher, h.CloseRoom)
-	g.Post("/:id/join", h.Join)
+	g.Post("/join", h.Join)
 }
 
 func (h *RoomHandler) Create(c *fiber.Ctx) error {
@@ -117,14 +117,8 @@ func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
 
 // TODO: сделать разделение по ролям для разных грантов, предположительно можно отправлять за учиетля на этот запрос заголовок авторизации
 func (h *RoomHandler) Join(c *fiber.Ctx) error {
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid room id",
-		})
-	}
-
 	var req struct {
+		Id       int64  `json:"id"`
 		Nickname string `json:"nickname"`
 		Password string `json:"password"`
 	}
@@ -134,7 +128,7 @@ func (h *RoomHandler) Join(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := h.svc.JoinRoom(id, req.Nickname, req.Password)
+	token, err := h.svc.JoinRoom(req.Id, req.Nickname, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),

@@ -15,9 +15,9 @@ import {
     IconButton
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { fetchOpenRooms, createRoom } from '../services/rooms/roomsService.ts';
+import {fetchOpenRooms, createRoom, joinRoom} from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
-import { clearToken } from "../services/auth/storage.ts";
+import { clearToken } from '../services/auth/storage.ts';
 
 const drawerWidth = 250;
 
@@ -30,9 +30,44 @@ export default function TeacherPage() {
     const navigate = useNavigate();
     const [nameError, setNameError] = useState(false);
 
+    const [joinModalOpen, setJoinModalOpen] = useState(false);
+    const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+    const [isSelectedRoomProtected, setIsSelectedRoomProtected] = useState(false);
+    const [joinName, setJoinName] = useState('');
+    const [joinPassword, setJoinPassword] = useState('');
+    const [joinError, setJoinError] = useState('');
+
     useEffect(() => {
         loadRooms();
     }, []);
+
+    const handleJoinClick = (roomId: number, isProtected: boolean) => {
+        setSelectedRoomId(roomId);
+        setIsSelectedRoomProtected(isProtected);
+        setJoinName('');
+        setJoinPassword('');
+        setJoinError('');
+        setJoinModalOpen(true);
+    };
+
+    const handleJoinRoom = async () => {
+        const trimmedName = joinName.trim();
+        if (!trimmedName) {
+            setJoinError('Имя не может быть пустым');
+            return;
+        }
+
+        try {
+            const token = await joinRoom({
+                id: selectedRoomId!,
+                nickname: trimmedName,
+                password: joinPassword,
+            });
+            console.log(token);
+        } catch (err: any) {
+            setJoinError(err.message || 'Ошибка подключения');
+        }
+    };
 
     const loadRooms = async () => {
         try {
@@ -172,6 +207,7 @@ export default function TeacherPage() {
                             }}
                         >
                             <Card
+                                onClick={() => handleJoinClick(room.id, room.isProtected)}
                                 sx={{
                                     height: '100%',
                                     bgcolor: '#2a2a2a',
@@ -310,6 +346,102 @@ export default function TeacherPage() {
                                 }}
                             >
                                 Создать
+                            </Button>
+                        </Box>
+                    </Box>
+                </Fade>
+            </Modal>
+            <Modal open={joinModalOpen} onClose={() => setJoinModalOpen(false)} closeAfterTransition>
+                <Fade in={joinModalOpen}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '90%', sm: 420 },
+                            bgcolor: '#1e1e1e',
+                            color: 'white',
+                            borderRadius: 3,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                            p: 4,
+                            outline: 'none',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                        }}
+                    >
+                        <Typography variant="h6" mb={3}>
+                            🔗 Подключение к комнате
+                        </Typography>
+
+                        <TextField
+                            fullWidth
+                            label="Ваше имя*"
+                            value={joinName}
+                            onChange={(e) => {
+                                setJoinName(e.target.value);
+                                if (joinError) setJoinError('');
+                            }}
+                            margin="normal"
+                            error={!!joinError}
+                            helperText={joinError || ''}
+                            InputLabelProps={{ sx: { color: '#bbb' } }}
+                            InputProps={{
+                                sx: {
+                                    color: 'white',
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+                                },
+                            }}
+                        />
+
+                        {isSelectedRoomProtected && (
+                            <TextField
+                                fullWidth
+                                label="Пароль"
+                                value={joinPassword}
+                                onChange={(e) => setJoinPassword(e.target.value)}
+                                margin="normal"
+                                type="password"
+                                InputLabelProps={{ sx: { color: '#bbb' } }}
+                                InputProps={{
+                                    sx: {
+                                        color: 'white',
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
+                                    },
+                                }}
+                            />
+                        )}
+
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                            <Button
+                                variant="outlined"
+                                color="inherit"
+                                onClick={() => setJoinModalOpen(false)}
+                                sx={{
+                                    borderColor: '#777',
+                                    color: '#ccc',
+                                    '&:hover': {
+                                        borderColor: '#aaa',
+                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                    },
+                                }}
+                            >
+                                Отмена
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleJoinRoom}
+                                color="primary"
+                                sx={{
+                                    fontWeight: 'bold',
+                                    boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
+                                }}
+                            >
+                                Присоединиться
                             </Button>
                         </Box>
                     </Box>
