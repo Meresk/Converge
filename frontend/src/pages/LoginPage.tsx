@@ -43,23 +43,29 @@ export default function LoginPage() {
     };
 
     return (
+        <Box
+            sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: 2,
+            }}
+        >
             <Paper
                 elevation={6}
                 sx={{
                     p: { xs: 3, sm: 4 },
-                    width: "100%",
+                    width: '100%',
                     maxWidth: 400,
                     borderRadius: 3,
-                    backgroundColor: "#1e1e1e",
-                    color: "#fff",
-                    boxShadow: "0px 10px 25px rgba(0,0,0,0.3)",
-                    '@media (max-width: 600px)': {
-                        maxWidth: "90%",
-                    }
+                    backgroundColor: '#1e1e1e',
+                    color: '#fff',
+                    boxShadow: '0px 10px 25px rgba(0,0,0,0.3)',
                 }}
             >
-                <Box sx={{ textAlign: "center", mb: 3 }}>
-                    <LockIcon sx={{ fontSize: 48, color: "#2196f3" }} />
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <LockIcon sx={{ fontSize: 48, color: '#2196f3' }} />
                     <Typography variant="h5" fontWeight={600} mt={1}>
                         Вход в систему
                     </Typography>
@@ -76,8 +82,8 @@ export default function LoginPage() {
                         autoComplete="username"
                         autoFocus
                         variant="filled"
-                        InputProps={{ sx: { color: "#fff" } }}
-                        InputLabelProps={{ sx: { color: "#aaa" } }}
+                        InputProps={{ sx: { color: '#fff' } }}
+                        InputLabelProps={{ sx: { color: '#aaa' } }}
                     />
 
                     <TextField
@@ -85,33 +91,33 @@ export default function LoginPage() {
                         fullWidth
                         margin="normal"
                         required
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         autoComplete="current-password"
                         variant="filled"
                         InputProps={{
-                            sx: { color: "#fff" },
+                            sx: { color: '#fff' },
                             endAdornment: (
                                 <InputAdornment position="end">
                                     <IconButton
                                         onClick={() => setShowPassword(!showPassword)}
                                         edge="end"
-                                        sx={{ color: "#ccc" }}
+                                        sx={{ color: '#ccc' }}
                                     >
                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
                                 </InputAdornment>
                             )
                         }}
-                        InputLabelProps={{ sx: { color: "#aaa" } }}
+                        InputLabelProps={{ sx: { color: '#aaa' } }}
                     />
 
                     <Fade in={!!error}>
                         <Typography
                             color="error"
                             variant="body2"
-                            sx={{ mt: 2, textAlign: "center" }}
+                            sx={{ mt: 2, textAlign: 'center' }}
                         >
                             {error}
                         </Typography>
@@ -128,16 +134,16 @@ export default function LoginPage() {
                             py: 1.5,
                             fontWeight: 600,
                             letterSpacing: 0.5,
-                            boxShadow: "0 4px 12px rgba(33,150,243,0.4)",
+                            boxShadow: '0 4px 12px rgba(33,150,243,0.4)',
                             '@media (max-width: 600px)': {
                                 py: 1,
                             }
                         }}
                     >
-                        {loading ? <CircularProgress size={24} color="inherit" /> : "Войти"}
+                        {loading ? <CircularProgress size={24} color="inherit" /> : 'Войти'}
                     </Button>
                 </Box>
             </Paper>
-
+        </Box>
     );
 }

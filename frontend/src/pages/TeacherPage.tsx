@@ -1,14 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {fetchOpenRooms, createRoom, type Room} from '../services/rooms/roomsService.ts';
-import {clearToken} from "../services/auth/storage.ts";
+import {
+    Box,
+    Button,
+    Typography,
+    Card,
+    CardContent,
+    Modal,
+    TextField,
+    Divider,
+    Grid,
+    Fade,
+    Drawer,
+    IconButton
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { fetchOpenRooms, createRoom } from '../services/rooms/roomsService.ts';
+import type { Room } from '../services/rooms/types.ts';
+import { clearToken } from "../services/auth/storage.ts";
+
+const drawerWidth = 250;
 
 export default function TeacherPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [newName, setNewName] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
+    const [nameError, setNameError] = useState(false);
 
     useEffect(() => {
         loadRooms();
@@ -24,85 +44,277 @@ export default function TeacherPage() {
     };
 
     const handleCreate = async () => {
+        const trimmedName = newName.trim();
+        if (!trimmedName) {
+            setNameError(true);
+            return;
+        }
+
         try {
-            await createRoom({ name: newName, password: newPassword });
+            await createRoom({ name: trimmedName, password: newPassword });
             setShowModal(false);
             setNewName('');
             setNewPassword('');
+            setNameError(false);
             loadRooms();
         } catch (err) {
             console.error(err);
         }
-    }
+    };
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
         clearToken();
         navigate('/');
-    }
+    };
+
+    const drawerContent = (
+        <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h6" mb={2}>
+                Преподаватель
+            </Typography>
+
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setShowModal(true)}
+                sx={{ mb: 2 }}
+            >
+                Создать комнату
+            </Button>
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Divider sx={{ my: 2, bgcolor: 'grey.700' }} />
+
+            <Button variant="outlined" color="error" onClick={handleLogout}>
+                Выйти
+            </Button>
+        </Box>
+    );
 
     return (
-        <div className="flex h-screen">
-            <button onClick={handleLogout}>Выход</button>
-            {/* Sidebar */}
-            <div className="w-1/4 bg-gray-800 text-white p-4">
-                <h2 className="text-xl mb-4">Преподаватель</h2>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded mb-2"
+        <Box sx={{ display: 'flex', height: '100vh' }}>
+            {/* Боковое меню */}
+            <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+                <Drawer
+                    variant="temporary"
+                    open={mobileOpen}
+                    onClose={() => setMobileOpen(false)}
+                    ModalProps={{ keepMounted: true }}
+                    sx={{
+                        display: { xs: 'block', sm: 'none' },
+                        '& .MuiDrawer-paper': {
+                            width: drawerWidth,
+                            bgcolor: 'grey.900',
+                            color: 'white',
+                        },
+                    }}
                 >
-                    Создать комнату
-                </button>
-                <button
-                    onClick={() => navigate('/rooms')}
-                    className="w-full bg-green-600 hover:bg-green-700 py-2 rounded"
-                >
-                    Мои комнаты
-                </button>
-            </div>
+                    {drawerContent}
+                </Drawer>
 
-            {/* Main Content */}
-            <div className="flex-1 p-6 overflow-auto">
-                <h1 className="text-2xl mb-4">Список комнат</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {rooms.map(room => (
-                        <div key={room.id} className="border rounded-lg p-4 shadow hover:shadow-lg transition">
-                            <h3 className="text-lg font-semibold">{room.name}</h3>
-                            {room.isProtected && <span className="text-red-500">🔒 С паролем</span>}
-                        </div>
+                <Drawer
+                    variant="permanent"
+                    sx={{
+                        display: { xs: 'none', sm: 'block' },
+                        '& .MuiDrawer-paper': {
+                            width: drawerWidth,
+                            bgcolor: 'grey.900',
+                            color: 'white',
+                        },
+                    }}
+                    open
+                >
+                    {drawerContent}
+                </Drawer>
+            </Box>
+
+            {/* Основной контент */}
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: 4,
+                    overflowY: 'auto',
+                    width: { sm: `calc(100% - ${drawerWidth}px)` },
+                    bgcolor: '#121212',
+                }}
+            >
+                <IconButton
+                    color="inherit"
+                    edge="start"
+                    onClick={() => setMobileOpen(true)}
+                    sx={{ display: { sm: 'none' }, mb: 2 }}
+                >
+                    <MenuIcon />
+                </IconButton>
+
+                <Typography variant="h4" gutterBottom color="white">
+                    Список открытых комнат
+                </Typography>
+                <Grid container columns={12} columnSpacing={3} rowSpacing={3}>
+                    {/* Я НЕНАВИЖУ ЭТУ ОШИБКУ С GRID, ПУСТЬ ЧЕРТ КОТОРЫЙ ЭТО ПРИДУМАЛ ЗАСУНЕТ ЕЁ СЕБЕ В *** */}
+                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                    {rooms.map((room, index) => ( // @ts-expect-error
+                        <Grid
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            key={room.id}
+                            sx={{
+                                opacity: 0,
+                                transform: 'translateY(20px)',
+                                animation: 'fadeSlideIn 0.5s forwards',
+                                animationDelay: `${index * 0.1}s`,
+                                '@keyframes fadeSlideIn': {
+                                    to: { opacity: 1, transform: 'translateY(0)' },
+                                },
+                            }}
+                        >
+                            <Card
+                                sx={{
+                                    height: '100%',
+                                    bgcolor: '#2a2a2a',
+                                    color: '#eee',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 8px 24px rgba(33, 150, 243, 0.6)',
+                                    },
+                                }}
+                            >
+                                <CardContent>
+                                    <Typography variant="h6">{room.name}</Typography>
+                                    <Typography
+                                        variant="body2"
+                                        color={room.isProtected ? 'error' : 'success.main'}
+                                        sx={{ mt: 1 }}
+                                    >
+                                        {room.isProtected ? '🔒 С паролем' : '🟢 Открытая комната'}
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
                     ))}
-                </div>
-            </div>
+                </Grid>
+            </Box>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-6 w-1/3">
-                        <h2 className="text-xl mb-4">Новая комната</h2>
-                        <input
-                            className="w-full border p-2 rounded mb-2"
-                            placeholder="Название"
+            {/* Модальное окно */}
+            <Modal open={showModal} onClose={() => setShowModal(false)} closeAfterTransition>
+                <Fade in={showModal}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: { xs: '90%', sm: 420 },
+                            bgcolor: '#1e1e1e',
+                            color: 'white',
+                            borderRadius: 3,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                            p: 4,
+                            outline: 'none',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                        }}
+                    >
+                        <Typography variant="h6" mb={3} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            🎓 Создание новой комнаты
+                        </Typography>
+
+                        <TextField
+                            fullWidth
+                            label="Название*"
+                            variant="outlined"
                             value={newName}
-                            onChange={e => setNewName(e.target.value)}
+                            onChange={(e) => {
+                                setNewName(e.target.value);
+                                if (nameError && e.target.value.trim()) {
+                                    setNameError(false);
+                                }
+                            }}
+                            margin="normal"
+                            error={nameError}
+                            helperText={nameError ? 'Название не может быть пустым' : ''}
+                            InputLabelProps={{
+                                sx: { color: nameError ? 'error.main' : '#bbb' },
+                            }}
+                            InputProps={{
+                                sx: {
+                                    color: 'white',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: nameError ? 'error.main' : '#555',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: nameError ? 'error.main' : '#888',
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: nameError ? 'error.main' : 'primary.main',
+                                    },
+                                },
+                            }}
                         />
-                        <input
-                            className="w-full border p-2 rounded mb-4"
-                            placeholder="Пароль (необязательно)"
+
+                        <TextField
+                            fullWidth
+                            label="Пароль (необязательно)"
+                            variant="outlined"
+                            type="password"
                             value={newPassword}
-                            onChange={e => setNewPassword(e.target.value)}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            margin="normal"
+                            InputLabelProps={{
+                                sx: { color: '#bbb' },
+                            }}
+                            InputProps={{
+                                sx: {
+                                    color: 'white',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#555',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#888',
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'primary.main',
+                                    },
+                                },
+                            }}
                         />
-                        <div className="flex justify-end">
-                            <button
+
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                            <Button
+                                variant="outlined"
+                                color="inherit"
                                 onClick={() => setShowModal(false)}
-                                className="mr-2 py-2 px-4 rounded border"
-                            >Отмена</button>
-                            <button
+                                sx={{
+                                    borderColor: '#777',
+                                    color: '#ccc',
+                                    '&:hover': {
+                                        borderColor: '#aaa',
+                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                    },
+                                }}
+                            >
+                                Отмена
+                            </Button>
+                            <Button
+                                variant="contained"
                                 onClick={handleCreate}
-                                className="py-2 px-4 bg-blue-600 text-white rounded"
-                            >Создать</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+                                color="primary"
+                                sx={{
+                                    fontWeight: 'bold',
+                                    boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
+                                }}
+                            >
+                                Создать
+                            </Button>
+                        </Box>
+                    </Box>
+                </Fade>
+            </Modal>
+        </Box>
     );
 }
