@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
@@ -38,8 +39,6 @@ func main() {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 
-	// LiveKit
-	//client := lksdk.NewRoomServiceClient(cfg.LiveKitServerURL, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)mmin
 	// Репозитории
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
@@ -61,15 +60,23 @@ func main() {
 	// Middlewares
 	authMW := middleware.NewAuthMiddleware(cfg.JWTSecret)
 
-	// Fiber и маршруты
+	// Fiber и CORS
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     cfg.AllowOrigins,
+		AllowHeaders:     cfg.AllowHeaders,
+		AllowMethods:     cfg.AllowMethods,
+		AllowCredentials: true,
+	}))
+
+	// Маршруты
 	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
 	roomH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
 	// Запуск сервера
-	addr := fmt.Sprintf(":%d", cfg.Port)
+	addr := fmt.Sprintf(":%s", cfg.Port)
 	if err := app.Listen(addr); err != nil {
 		log.Fatalf("Error starting app: %v", err)
 	}

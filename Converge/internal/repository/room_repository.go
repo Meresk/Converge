@@ -10,6 +10,7 @@ type RoomRepository interface {
 	FindAll() ([]*model.Room, error)
 	GetById(id int64) (*model.Room, error)
 	Update(room *model.Room) error
+	FindAllOpen() ([]*model.Room, error)
 }
 
 type roomRepositoryImpl struct {
@@ -18,6 +19,16 @@ type roomRepositoryImpl struct {
 
 func NewRoomRepository(db *gorm.DB) RoomRepository {
 	return &roomRepositoryImpl{db: db}
+}
+
+func (r *roomRepositoryImpl) FindAllOpen() ([]*model.Room, error) {
+	var rooms []*model.Room
+	err := r.db.Where("end_at IS NULL").Find(&rooms).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return rooms, nil
 }
 
 func (r *roomRepositoryImpl) Create(room *model.Room) error {

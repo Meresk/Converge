@@ -15,6 +15,7 @@ type RoomService interface {
 	GetById(id int64) (*model.Room, error)
 	CloseRoom(id int64, ownerID int64) error
 	JoinRoom(roomID int64, nickname, password string) (string, error)
+	GetAllOpenRooms() ([]*model.Room, error)
 }
 
 type roomService struct {
@@ -26,6 +27,10 @@ type roomService struct {
 
 func NewRoomService(rr repository.RoomRepository, pr repository.ParticipantRepository, apiKey, apiSecret string) RoomService {
 	return &roomService{roomRepo: rr, participantRepo: pr, apiKey: apiKey, apiSecret: apiSecret}
+}
+
+func (s *roomService) GetAllOpenRooms() ([]*model.Room, error) {
+	return s.roomRepo.FindAllOpen()
 }
 
 func (s *roomService) JoinRoom(roomID int64, nickname, password string) (string, error) {
@@ -94,7 +99,7 @@ func (s *roomService) CloseRoom(id int64, ownerID int64) error {
 		return err
 	}
 
-	if room.OwnerID != nil || *room.OwnerID != ownerID {
+	if room.OwnerID == nil || *room.OwnerID != ownerID {
 		return errors.New("you are not the owner of the room")
 	}
 	now := time.Now()

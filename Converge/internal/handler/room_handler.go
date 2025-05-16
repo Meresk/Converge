@@ -17,9 +17,10 @@ func NewRoomHandler(svc service.RoomService) *RoomHandler {
 func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
 	g := app.Group("/api/rooms")
 	g.Post("/", onlyTeacher, h.Create)
-	g.Get("/", h.GetAll)
+	g.Get("/", onlyTeacher, h.GetAll)
+	g.Get("/open", h.GetAllOpenRooms)
 	g.Post("/:id/close", onlyTeacher, h.CloseRoom)
-	g.Post("/:id/join", h.Join)
+	g.Post("/join", h.Join)
 }
 
 func (h *RoomHandler) Create(c *fiber.Ctx) error {
@@ -42,7 +43,14 @@ func (h *RoomHandler) Create(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(room)
+	return c.JSON(fiber.Map{
+		"id":          room.ID,
+		"name":        room.Name,
+		"ownerID":     room.OwnerID,
+		"isProtected": room.Password != "",
+		"startsAt":    room.StartsAt,
+		"endAt":       room.EndAt,
+	})
 }
 
 func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
@@ -52,7 +60,43 @@ func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
 			"error": "cannot get rooms",
 		})
 	}
-	return c.JSON(rooms)
+
+	response := make([]fiber.Map, len(rooms))
+	for i, room := range rooms {
+		response[i] = fiber.Map{
+			"id":          room.ID,
+			"name":        room.Name,
+			"ownerID":     room.OwnerID,
+			"isProtected": room.Password != "",
+			"startsAt":    room.StartsAt,
+			"endAt":       room.EndAt,
+		}
+	}
+
+	return c.JSON(response)
+}
+
+func (h *RoomHandler) GetAllOpenRooms(c *fiber.Ctx) error {
+	rooms, err := h.svc.GetAllOpenRooms()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "cannot get rooms",
+		})
+	}
+
+	response := make([]fiber.Map, len(rooms))
+	for i, room := range rooms {
+		response[i] = fiber.Map{
+			"id":          room.ID,
+			"name":        room.Name,
+			"ownerID":     room.OwnerID,
+			"isProtected": room.Password != "",
+			"startsAt":    room.StartsAt,
+			"endAt":       room.EndAt,
+		}
+	}
+
+	return c.JSON(response)
 }
 
 func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
@@ -73,14 +117,8 @@ func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
 
 // TODO: сделать разделение по ролям для разных грантов, предположительно можно отправлять за учиетля на этот запрос заголовок авторизации
 func (h *RoomHandler) Join(c *fiber.Ctx) error {
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid room id",
-		})
-	}
-
 	var req struct {
+		Id       int64  `json:"id"`
 		Nickname string `json:"nickname"`
 		Password string `json:"password"`
 	}
@@ -90,7 +128,7 @@ func (h *RoomHandler) Join(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := h.svc.JoinRoom(id, req.Nickname, req.Password)
+	token, err := h.svc.JoinRoom(req.Id, req.Nickname, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
