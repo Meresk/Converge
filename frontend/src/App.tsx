@@ -4,14 +4,16 @@ import RoleSelectPage from "./pages/RoleSelectPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import StudentPage from "./pages/StudentPage.tsx";
 import TeacherPage from "./pages/TeacherPage.tsx";
+import {ProtectedRoute} from "./components/ProtectedRoute.tsx";
+
 
 function App() {
   return (
       <Routes>
           <Route path="/" element={<RoleSelectPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={  <LoginPage /> } />
           <Route path="/student" element={<StudentPage />} />
-          <Route path="/teacher" element={<TeacherPage />} />
+          <Route path="/teacher" element={ <ProtectedRoute> <TeacherPage /> </ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
   )

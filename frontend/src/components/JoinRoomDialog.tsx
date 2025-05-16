@@ -1,67 +1,50 @@
-import React, { useState, useEffect } from "react";
-import {
-    Modal,
-    Fade,
-    Box,
-    Typography,
-    TextField,
-    Button,
-} from "@mui/material";
+// components/JoinRoomDialog.tsx
+import { Box, Button, Fade, Modal, TextField, Typography } from '@mui/material';
+import React from 'react';
 
-type JoinRoomDialogProps = {
+interface JoinRoomDialogProps {
     open: boolean;
     onClose: () => void;
-    onJoin: (name: string, password?: string) => void;
-    isProtected?: boolean;
-    error?: string;
-};
+    onJoin: () => void;
+    joinName: string;
+    joinPassword: string;
+    isProtected: boolean;
+    joinError: string;
+    setJoinName: (value: string) => void;
+    setJoinPassword: (value: string) => void;
+    setJoinError: (value: string) => void;
+}
 
-export const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
-                                                                  open,
-                                                                  onClose,
-                                                                  onJoin,
-                                                                  isProtected = false,
-                                                                  error = "",
-                                                              }) => {
-    const [name, setName] = useState("");
-    const [password, setPassword] = useState("");
-    const [localError, setLocalError] = useState("");
-
-    useEffect(() => {
-        if (!open) {
-            setName("");
-            setPassword("");
-            setLocalError("");
-        }
-    }, [open]);
-
-    const handleJoin = () => {
-        if (!name.trim()) {
-            setLocalError("Введите имя");
-            return;
-        }
-        setLocalError("");
-        onJoin(name.trim(), password);
-    };
-
+const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
+                                                           open,
+                                                           onClose,
+                                                           onJoin,
+                                                           joinName,
+                                                           joinPassword,
+                                                           isProtected,
+                                                           joinError,
+                                                           setJoinName,
+                                                           setJoinPassword,
+                                                           setJoinError,
+                                                       }) => {
     return (
         <Modal open={open} onClose={onClose} closeAfterTransition>
             <Fade in={open}>
                 <Box
                     sx={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: { xs: "90%", sm: 420 },
-                        bgcolor: "#1e1e1e",
-                        color: "white",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '90%', sm: 420 },
+                        bgcolor: '#1e1e1e',
+                        color: 'white',
                         borderRadius: 3,
-                        boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                         p: 4,
-                        outline: "none",
-                        backdropFilter: "blur(8px)",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        outline: 'none',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
                     }}
                 >
                     <Typography variant="h6" mb={3}>
@@ -71,23 +54,21 @@ export const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                     <TextField
                         fullWidth
                         label="Ваше имя*"
-                        value={name}
+                        value={joinName}
                         onChange={(e) => {
-                            setName(e.target.value);
-                            if (localError) setLocalError("");
+                            setJoinName(e.target.value);
+                            if (joinError) setJoinError('');
                         }}
                         margin="normal"
-                        error={!!localError}
-                        helperText={localError || error || ""}
-                        InputLabelProps={{ sx: { color: "#bbb" } }}
+                        error={!!joinError}
+                        helperText={joinError || ''}
+                        InputLabelProps={{ sx: { color: '#bbb' } }}
                         InputProps={{
                             sx: {
-                                color: "white",
-                                "& .MuiOutlinedInput-notchedOutline": { borderColor: "#555" },
-                                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#888" },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "primary.main",
-                                },
+                                color: 'white',
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
                             },
                         }}
                     />
@@ -96,35 +77,33 @@ export const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                         <TextField
                             fullWidth
                             label="Пароль"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            margin="normal"
                             type="password"
-                            InputLabelProps={{ sx: { color: "#bbb" } }}
+                            value={joinPassword}
+                            onChange={(e) => setJoinPassword(e.target.value)}
+                            margin="normal"
+                            InputLabelProps={{ sx: { color: '#bbb' } }}
                             InputProps={{
                                 sx: {
-                                    color: "white",
-                                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#555" },
-                                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#888" },
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "primary.main",
-                                    },
+                                    color: 'white',
+                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
                                 },
                             }}
                         />
                     )}
 
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
                         <Button
                             variant="outlined"
                             color="inherit"
                             onClick={onClose}
                             sx={{
-                                borderColor: "#777",
-                                color: "#ccc",
-                                "&:hover": {
-                                    borderColor: "#aaa",
-                                    backgroundColor: "rgba(255,255,255,0.05)",
+                                borderColor: '#777',
+                                color: '#ccc',
+                                '&:hover': {
+                                    borderColor: '#aaa',
+                                    backgroundColor: 'rgba(255,255,255,0.05)',
                                 },
                             }}
                         >
@@ -132,14 +111,14 @@ export const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                         </Button>
                         <Button
                             variant="contained"
-                            onClick={handleJoin}
+                            onClick={onJoin}
                             color="primary"
                             sx={{
-                                fontWeight: "bold",
-                                boxShadow: "0 2px 8px rgba(33,150,243,0.4)",
+                                fontWeight: 'bold',
+                                boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
                             }}
                         >
-                            Присоединиться
+                            Подключиться
                         </Button>
                     </Box>
                 </Box>
@@ -147,3 +126,5 @@ export const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
         </Modal>
     );
 };
+
+export default JoinRoomDialog;

@@ -4,13 +4,8 @@ import {
     Box,
     Button,
     Typography,
-    Card,
-    CardContent,
-    Modal,
-    TextField,
     Divider,
     Grid,
-    Fade,
     Drawer,
     IconButton
 } from '@mui/material';
@@ -18,6 +13,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import {fetchOpenRooms, createRoom, joinRoom} from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import { clearToken } from '../services/auth/storage.ts';
+import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
+import CreateRoomModal from "../components/CreateRoomDialog.tsx";
+import RoomCard from "../components/RoomCard.tsx";
 
 const drawerWidth = 250;
 
@@ -64,8 +62,12 @@ export default function TeacherPage() {
                 password: joinPassword,
             });
             console.log(token);
-        } catch (err: any) {
-            setJoinError(err.message || 'Ошибка подключения');
+        } catch (error) {
+            if (error instanceof Error) {
+                setJoinError(error.message);
+            } else {
+                setJoinError('Ошибка подключения');
+            }
         }
     };
 
@@ -111,8 +113,12 @@ export default function TeacherPage() {
             <Button
                 variant="contained"
                 color="primary"
+                sx={{
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
+                    mb: 2,
+                }}
                 onClick={() => setShowModal(true)}
-                sx={{ mb: 2 }}
             >
                 Создать комнату
             </Button>
@@ -120,6 +126,21 @@ export default function TeacherPage() {
             <Box sx={{ flexGrow: 1 }} />
 
             <Divider sx={{ my: 2, bgcolor: 'grey.700' }} />
+
+            <Button  variant="outlined"
+                     color="inherit"
+                     sx={{
+                         mb: 2,
+                         borderColor: '#777',
+                         color: '#ccc',
+                         '&:hover': {
+                             borderColor: '#aaa',
+                             backgroundColor: 'rgba(255,255,255,0.05)',
+                         },
+                     }}
+                     onClick={() => navigate('/')}>
+                Назад
+            </Button>
 
             <Button variant="outlined" color="error" onClick={handleLogout}>
                 Выйти
@@ -206,247 +227,39 @@ export default function TeacherPage() {
                                 },
                             }}
                         >
-                            <Card
+                            <RoomCard
+                                name={room.name}
+                                isProtected={room.isProtected}
                                 onClick={() => handleJoinClick(room.id, room.isProtected)}
-                                sx={{
-                                    height: '100%',
-                                    bgcolor: '#2a2a2a',
-                                    color: '#eee',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                                    '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: '0 8px 24px rgba(33, 150, 243, 0.6)',
-                                    },
-                                }}
-                            >
-                                <CardContent>
-                                    <Typography variant="h6">{room.name}</Typography>
-                                    <Typography
-                                        variant="body2"
-                                        color={room.isProtected ? 'error' : 'success.main'}
-                                        sx={{ mt: 1 }}
-                                    >
-                                        {room.isProtected ? '🔒 С паролем' : '🟢 Открытая комната'}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
+                            />
                         </Grid>
                     ))}
                 </Grid>
             </Box>
 
-            {/* Модальное окно */}
-            <Modal open={showModal} onClose={() => setShowModal(false)} closeAfterTransition>
-                <Fade in={showModal}>
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: { xs: '90%', sm: 420 },
-                            bgcolor: '#1e1e1e',
-                            color: 'white',
-                            borderRadius: 3,
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                            p: 4,
-                            outline: 'none',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                        }}
-                    >
-                        <Typography variant="h6" mb={3} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            🎓 Создание новой комнаты
-                        </Typography>
-
-                        <TextField
-                            fullWidth
-                            label="Название*"
-                            variant="outlined"
-                            value={newName}
-                            onChange={(e) => {
-                                setNewName(e.target.value);
-                                if (nameError && e.target.value.trim()) {
-                                    setNameError(false);
-                                }
-                            }}
-                            margin="normal"
-                            error={nameError}
-                            helperText={nameError ? 'Название не может быть пустым' : ''}
-                            InputLabelProps={{
-                                sx: { color: nameError ? 'error.main' : '#bbb' },
-                            }}
-                            InputProps={{
-                                sx: {
-                                    color: 'white',
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: nameError ? 'error.main' : '#555',
-                                    },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: nameError ? 'error.main' : '#888',
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: nameError ? 'error.main' : 'primary.main',
-                                    },
-                                },
-                            }}
-                        />
-
-                        <TextField
-                            fullWidth
-                            label="Пароль (необязательно)"
-                            variant="outlined"
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            margin="normal"
-                            InputLabelProps={{
-                                sx: { color: '#bbb' },
-                            }}
-                            InputProps={{
-                                sx: {
-                                    color: 'white',
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#555',
-                                    },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#888',
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'primary.main',
-                                    },
-                                },
-                            }}
-                        />
-
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-                            <Button
-                                variant="outlined"
-                                color="inherit"
-                                onClick={() => setShowModal(false)}
-                                sx={{
-                                    borderColor: '#777',
-                                    color: '#ccc',
-                                    '&:hover': {
-                                        borderColor: '#aaa',
-                                        backgroundColor: 'rgba(255,255,255,0.05)',
-                                    },
-                                }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={handleCreate}
-                                color="primary"
-                                sx={{
-                                    fontWeight: 'bold',
-                                    boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
-                                }}
-                            >
-                                Создать
-                            </Button>
-                        </Box>
-                    </Box>
-                </Fade>
-            </Modal>
-            <Modal open={joinModalOpen} onClose={() => setJoinModalOpen(false)} closeAfterTransition>
-                <Fade in={joinModalOpen}>
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: { xs: '90%', sm: 420 },
-                            bgcolor: '#1e1e1e',
-                            color: 'white',
-                            borderRadius: 3,
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                            p: 4,
-                            outline: 'none',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                        }}
-                    >
-                        <Typography variant="h6" mb={3}>
-                            🔗 Подключение к комнате
-                        </Typography>
-
-                        <TextField
-                            fullWidth
-                            label="Ваше имя*"
-                            value={joinName}
-                            onChange={(e) => {
-                                setJoinName(e.target.value);
-                                if (joinError) setJoinError('');
-                            }}
-                            margin="normal"
-                            error={!!joinError}
-                            helperText={joinError || ''}
-                            InputLabelProps={{ sx: { color: '#bbb' } }}
-                            InputProps={{
-                                sx: {
-                                    color: 'white',
-                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
-                                },
-                            }}
-                        />
-
-                        {isSelectedRoomProtected && (
-                            <TextField
-                                fullWidth
-                                label="Пароль"
-                                value={joinPassword}
-                                onChange={(e) => setJoinPassword(e.target.value)}
-                                margin="normal"
-                                type="password"
-                                InputLabelProps={{ sx: { color: '#bbb' } }}
-                                InputProps={{
-                                    sx: {
-                                        color: 'white',
-                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#888' },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
-                                    },
-                                }}
-                            />
-                        )}
-
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-                            <Button
-                                variant="outlined"
-                                color="inherit"
-                                onClick={() => setJoinModalOpen(false)}
-                                sx={{
-                                    borderColor: '#777',
-                                    color: '#ccc',
-                                    '&:hover': {
-                                        borderColor: '#aaa',
-                                        backgroundColor: 'rgba(255,255,255,0.05)',
-                                    },
-                                }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={handleJoinRoom}
-                                color="primary"
-                                sx={{
-                                    fontWeight: 'bold',
-                                    boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
-                                }}
-                            >
-                                Присоединиться
-                            </Button>
-                        </Box>
-                    </Box>
-                </Fade>
-            </Modal>
+            <CreateRoomModal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                onCreate={handleCreate}
+                newName={newName}
+                setNewName={setNewName}
+                newPassword={newPassword}
+                setNewPassword={setNewPassword}
+                nameError={nameError}
+                setNameError={setNameError}
+            />
+            <JoinRoomDialog
+                open={joinModalOpen}
+                onClose={() => setJoinModalOpen(false)}
+                onJoin={handleJoinRoom}
+                joinName={joinName}
+                joinPassword={joinPassword}
+                isProtected={isSelectedRoomProtected}
+                joinError={joinError}
+                setJoinName={setJoinName}
+                setJoinPassword={setJoinPassword}
+                setJoinError={setJoinError}
+            />
         </Box>
     );
 }
