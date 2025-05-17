@@ -15,8 +15,8 @@ import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import type { LoginParams } from "../services/auth/types.ts";
-import { saveToken } from "../services/auth/storage.ts";
-import { loginRequest } from "../services/auth/authService.ts";
+import {getToken, isTokenValid, saveToken} from "../services/auth/storage.ts";
+import {getUserRole, loginRequest} from "../services/auth/authService.ts";
 
 export default function LoginPage() {
     const [login, setLogin] = useState("");
@@ -34,7 +34,19 @@ export default function LoginPage() {
         try {
             const data = await loginRequest({ login, password } as LoginParams);
             saveToken(data.token);
-            navigate("/teacher");
+            const token = getToken();
+            if (!token || !isTokenValid()) {
+                navigate("/login");
+            }
+            const role = getUserRole();
+
+            if (role == "teacher") {
+                navigate("/teacher");
+            }
+            else if (role == "admin") {
+                navigate("/admin");
+            }
+
         } catch {
             setError("Неверный логин или пароль");
         } finally {

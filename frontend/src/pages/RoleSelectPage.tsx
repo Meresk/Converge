@@ -2,8 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import teacherImg from "../assets/teacherw.png";
 import studentImg from "../assets/studentw.png";
-import { getToken } from "../services/auth/storage.ts";
+import {getToken, isTokenValid} from "../services/auth/storage.ts";
 import { useTheme } from "@mui/material/styles";
+import {getUserRole} from "../services/auth/authService.ts";
 
 export default function RoleSelectPage() {
     const navigate = useNavigate();
@@ -12,10 +13,16 @@ export default function RoleSelectPage() {
 
     const onSelectTeacher = () => {
         const token = getToken();
-        if (token == null) {
+        if (!token || !isTokenValid()) {
             navigate("/login");
-        } else {
+        }
+        const role = getUserRole();
+
+        if (role == "teacher") {
             navigate("/teacher");
+        }
+        else if (role == "admin") {
+            navigate("/admin");
         }
     };
 

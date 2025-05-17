@@ -12,35 +12,24 @@ export default function RoomCard({ name, isProtected, onClick }: RoomCardProps) 
     return (
         <Card
             onClick={onClick}
-            elevation={8}
+            elevation={10}
             sx={{
                 height: '100%',
-                bgcolor: '#2a2a2a',
-                color: '#cfd8dc',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease',
-                // цвет текста без transition здесь, чтобы менялся мгновенно
+                cursor: 'pointer',
+                bgcolor: '#1e1e1e',
+                color: '#fff',
+                borderRadius: 3,
+                overflow: 'hidden',
+                boxShadow: '0 6px 16px rgba(0,0,0,0.4)',
+                transition: 'all 0.3s ease-in-out',
                 '&:hover': {
-                    transform: 'translateY(-6px) scale(1.03)',
-                    boxShadow: '0 12px 40px rgba(33, 150, 243, 0.3)',
-                    bgcolor: '#1565c0',
-                    color: '#e0e0e0', // текст меняется сразу при hover
-                    '& .MuiTypography-root': {
-                        // анимация цвета с задержкой
-                        transition: 'color 0.3s ease 0.15s',
-                        color: '#e0e0e0',
-                    },
-                    '& svg': {
-                        transition: 'color 0.3s ease 0.15s',
-                        color: '#e0e0e0',
-                    },
-                },
-                '& .MuiTypography-root': {
-                    transition: 'color 0.3s ease', // переход цвета без задержки в обычном состоянии
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 14px 32px rgba(0, 255, 120, 0.3)',
+                    bgcolor: '#263238',
                 },
                 '& svg': {
                     transition: 'color 0.3s ease',
-                    color: isProtected ? '#f44336' : '#4caf50', // красный или зелёный по умолчанию
+                    color: isProtected ? '#ef5350' : '#66bb6a',
                 },
             }}
         >
@@ -49,11 +38,13 @@ export default function RoomCard({ name, isProtected, onClick }: RoomCardProps) 
                     variant="h5"
                     component="div"
                     sx={{
-                        fontWeight: '700',
-                        mb: 1,
-                        letterSpacing: '0.05em',
+                        fontWeight: 'bold',
+                        mb: 1.5,
+                        letterSpacing: 1,
                         textTransform: 'uppercase',
                         userSelect: 'none',
+                        textAlign: 'center',
+                        color: '#e0e0e0',
                     }}
                 >
                     {name}
@@ -61,23 +52,25 @@ export default function RoomCard({ name, isProtected, onClick }: RoomCardProps) 
                 <Box
                     sx={{
                         display: 'flex',
+                        justifyContent: 'center',
                         alignItems: 'center',
                         gap: 1,
                         fontWeight: 500,
                         userSelect: 'none',
+                        mt: 2,
                     }}
                 >
                     {isProtected ? (
                         <>
-                            <LockIcon color="error" />
-                            <Typography variant="body1" color="error">
+                            <LockIcon />
+                            <Typography variant="body1" color="error.light">
                                 Защищена паролем
                             </Typography>
                         </>
                     ) : (
                         <>
-                            <LockOpenIcon color="success" />
-                            <Typography variant="body1" color="success.main">
+                            <LockOpenIcon />
+                            <Typography variant="body1" color="success.light">
                                 Открытая комната
                             </Typography>
                         </>

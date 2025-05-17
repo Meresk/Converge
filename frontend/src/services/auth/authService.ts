@@ -1,4 +1,5 @@
 import type {LoginParams, LoginResponse} from "./types.ts";
+import {getDecodedToken} from "./storage.ts";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,4 +16,9 @@ export async function loginRequest(params: LoginParams): Promise<LoginResponse> 
     }
 
     return res.json()
+}
+
+export function getUserRole(): string | null {
+    const decoded = getDecodedToken();
+    return decoded?.role ?? null;
 }

@@ -1,18 +1,24 @@
 import { Navigate } from 'react-router-dom';
-import {getToken} from "../services/auth/storage.ts";
+import {getToken, isTokenValid} from "../services/auth/storage.ts";
+import {getUserRole} from "../services/auth/authService.ts";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    allowedRoles?: string[]; // если не указано — любой валидный пользователь
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const token = getToken()
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+    const token = getToken();
 
-    if (!token) {
-        // Если нет токена — редиректим на страницу логина
+    if (!token || !isTokenValid()) {
         return <Navigate to="/login" replace />;
     }
 
-    // Если есть токен — показываем защищённый контент
+    const role = getUserRole();
+
+    if (allowedRoles && !allowedRoles.includes(role || '')) {
+        return <Navigate to="/403" replace />; // доступ запрещён
+    }
+
     return <>{children}</>;
 }
