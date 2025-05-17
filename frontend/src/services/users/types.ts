@@ -8,3 +8,9 @@ export interface User {
     login: string;
     role: Role;
 }
+
+export interface CreateUserParams {
+    login: string;
+    password: string;
+    roleID: number;
+}
