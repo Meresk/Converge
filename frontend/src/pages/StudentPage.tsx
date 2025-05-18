@@ -61,6 +61,7 @@ export default function StudentPage() {
                 password: joinPassword,
             });
             console.log(token);
+            navigate('/room', { state: { token } });
         } catch (error) {
             if (error instanceof Error) {
                 setJoinError(error.message);
