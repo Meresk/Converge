@@ -15,7 +15,7 @@ function App() {
           <Route path="/login" element={  <LoginPage /> } />
           <Route path="/student" element={<StudentPage />} />
           <Route path="/teacher" element={ <ProtectedRoute allowedRoles={['teacher']}> <TeacherPage /> </ProtectedRoute>} />
-          <Route path="/admin" element={ <AdminPage /> } />
+          <Route path="/admin" element={ <ProtectedRoute allowedRoles={['admin']} > <AdminPage /> </ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
   )

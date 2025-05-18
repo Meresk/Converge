@@ -114,7 +114,7 @@ export default function StudentPage() {
                         textTransform: 'uppercase',
                     }}
                 >
-                    Список открытых комнат
+                    Список активных комнат
                 </Typography>
 
                 <Grid container spacing={4} justifyContent="center">

@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Container, Typography, Table, TableHead, TableBody, TableRow, TableCell,
     IconButton, CircularProgress, Snackbar, Alert, Button, Dialog, DialogTitle,
-    DialogContent, DialogActions, TextField
+    DialogContent, DialogActions, TextField, Box
 } from '@mui/material';
-import { Delete, Refresh, Edit, Add } from '@mui/icons-material';
+import { Delete, Refresh, Edit, Add, Logout } from '@mui/icons-material';
 import {
     fetchUsers, deleteUser, updateUser, createUser
 } from '../services/users/usersService.ts';
 import type { User, CreateUserParams } from '../services/users/types';
-import {clearToken} from "../services/auth/storage.ts";
+import { clearToken } from "../services/auth/storage.ts";
 
 const emerald = '#2ecc71';
+const emeraldDark = '#27ae60';
 
-const AdminPage: React.FC = () => {
+export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -23,11 +24,8 @@ const AdminPage: React.FC = () => {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [formData, setFormData] = useState<CreateUserParams>({
-        login: '',
-        password: '',
-        roleID: 2,
-    });
+    const initialFormState = { login: '', password: '', roleID: 2 };
+    const [formData, setFormData] = useState<CreateUserParams>(initialFormState);
 
     const loadUsers = async () => {
         setLoading(true);
@@ -65,11 +63,7 @@ const AdminPage: React.FC = () => {
 
     const handleCreate = () => {
         setEditingUser(null);
-        setFormData({
-            login: '',
-            password: '',
-            roleID: 2,
-        });
+        setFormData(initialFormState);
         setDialogOpen(true);
     };
 
@@ -82,9 +76,7 @@ const AdminPage: React.FC = () => {
         try {
             if (editingUser) {
                 const updated = await updateUser(editingUser.id, formData);
-                setUsers((prev) =>
-                    prev.map((u) => (u.id === updated.id ? updated : u))
-                );
+                setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
                 setSuccessMessage('Пользователь обновлён');
             } else {
                 const created = await createUser(formData);
@@ -102,33 +94,47 @@ const AdminPage: React.FC = () => {
     }, []);
 
     return (
-        <Container sx={{ color: '#fff' }}>
-            <Typography variant="h4" gutterBottom>Панель администратора</Typography>
+        <Container maxWidth="md" sx={{ py: 4, color: '#fff' }}>
+            <Typography variant="h4" gutterBottom>
+                Панель администратора
+            </Typography>
 
-            <Button
-                variant="contained"
-                onClick={handleCreate}
-                sx={{ backgroundColor: emerald, mb: 2, mr: 2, '&:hover': { backgroundColor: '#27ae60' } }}
-                startIcon={<Add />}
-            >
-                Добавить пользователя
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Button
+                    variant="contained"
+                    onClick={handleCreate}
+                    sx={{ backgroundColor: emerald, '&:hover': { backgroundColor: emeraldDark } }}
+                    startIcon={<Add />}
+                >
+                    Добавить пользователя
+                </Button>
 
-            <Button
-                variant="outlined"
-                onClick={loadUsers}
-                startIcon={<Refresh />}
-                sx={{ borderColor: emerald, color: emerald, '&:hover': { borderColor: '#27ae60', color: '#27ae60' } }}
-            >
-                Обновить
-            </Button>
+                <Button
+                    variant="outlined"
+                    onClick={loadUsers}
+                    startIcon={<Refresh />}
+                    sx={{ borderColor: emerald, color: emerald, '&:hover': { borderColor: emeraldDark, color: emeraldDark } }}
+                >
+                    Обновить
+                </Button>
+
+                <Button
+                    variant="text"
+                    color="error"
+                    onClick={handleLogout}
+                    startIcon={<Logout />}
+                    sx={{ marginLeft: 'auto' }}
+                >
+                    Выйти
+                </Button>
+            </Box>
 
             {loading ? (
                 <CircularProgress sx={{ color: emerald, mt: 2 }} />
             ) : (
-                <Table sx={{ mt: 2, backgroundColor: '#2c2c2c', borderRadius: 2 }}>
+                <Table sx={{ mt: 2, backgroundColor: '#2c2c2c', borderRadius: 2, overflow: 'hidden' }}>
                     <TableHead>
-                        <TableRow>
+                        <TableRow sx={{ backgroundColor: '#1f1f1f' }}>
                             <TableCell sx={{ color: emerald }}>ID</TableCell>
                             <TableCell sx={{ color: emerald }}>Логин</TableCell>
                             <TableCell sx={{ color: emerald }}>Роль</TableCell>
@@ -136,16 +142,22 @@ const AdminPage: React.FC = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {users.map((user) => (
-                            <TableRow key={user.id}>
+                        {users.map((user, idx) => (
+                            <TableRow
+                                key={user.id}
+                                sx={{
+                                    backgroundColor: idx % 2 === 0 ? '#2a2a2a' : '#1e1e1e',
+                                    '&:last-child td': { borderBottom: 0 }
+                                }}
+                            >
                                 <TableCell sx={{ color: '#fff' }}>{user.id}</TableCell>
                                 <TableCell sx={{ color: '#fff' }}>{user.login}</TableCell>
-                                <TableCell sx={{ color: '#fff' }}>{user.role?.name || '—'}</TableCell>
+                                <TableCell sx={{ color: '#fff' }}>{user.role.name}</TableCell>
                                 <TableCell align="right">
-                                    <IconButton onClick={() => handleEdit(user)} sx={{ color: emerald }}>
+                                    <IconButton onClick={() => handleEdit(user)} sx={{ color: emerald }} size="small">
                                         <Edit />
                                     </IconButton>
-                                    <IconButton onClick={() => handleDelete(user.id)} sx={{ color: '#e74c3c' }}>
+                                    <IconButton onClick={() => handleDelete(user.id)} sx={{ color: '#e74c3c' }} size="small">
                                         <Delete />
                                     </IconButton>
                                 </TableCell>
@@ -156,7 +168,9 @@ const AdminPage: React.FC = () => {
             )}
 
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-                <DialogTitle>{editingUser ? 'Редактировать пользователя' : 'Создать пользователя'}</DialogTitle>
+                <DialogTitle sx={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
+                    {editingUser ? 'Редактировать пользователя' : 'Создать пользователя'}
+                </DialogTitle>
                 <DialogContent sx={{ backgroundColor: '#1e1e1e' }}>
                     <TextField
                         fullWidth
@@ -180,7 +194,7 @@ const AdminPage: React.FC = () => {
                 </DialogContent>
                 <DialogActions sx={{ backgroundColor: '#1e1e1e' }}>
                     <Button onClick={() => setDialogOpen(false)} color="inherit">Отмена</Button>
-                    <Button onClick={handleSave} sx={{ backgroundColor: emerald, color: '#fff', '&:hover': { backgroundColor: '#27ae60' } }}>
+                    <Button onClick={handleSave} sx={{ backgroundColor: emerald, color: '#fff', '&:hover': { backgroundColor: emeraldDark } }}>
                         Сохранить
                     </Button>
                 </DialogActions>
@@ -193,13 +207,6 @@ const AdminPage: React.FC = () => {
             <Snackbar open={!!successMessage} autoHideDuration={4000} onClose={() => setSuccessMessage(null)}>
                 <Alert severity="success">{successMessage}</Alert>
             </Snackbar>
-
-            <Button variant="outlined" color="error" onClick={handleLogout}>
-                Выйти
-            </Button>
-
         </Container>
     );
-};
-
-export default AdminPage;
+}
