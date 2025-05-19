@@ -103,7 +103,7 @@ export default function StudentPage() {
                 </IconButton>
             </Tooltip>
 
-            <Container maxWidth="lg">
+            <Container maxWidth="xl">
                 <Typography
                     variant="h4"
                     align="center"

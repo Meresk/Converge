@@ -1,31 +1,82 @@
 import { useEffect, useState } from 'react';
+import type {} from '@mui/x-data-grid/themeAugmentation';
 import { useNavigate } from 'react-router-dom';
 import {
-    Container, Typography, Table, TableHead, TableBody, TableRow, TableCell,
-    IconButton, CircularProgress, Snackbar, Alert, Button, Dialog, DialogTitle,
-    DialogContent, DialogActions, TextField, Box
+    Container,
+    Typography,
+    Box,
+    Button,
+    CircularProgress,
+    Snackbar,
+    Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    IconButton,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    createTheme,
+    ThemeProvider
 } from '@mui/material';
-import { Delete, Refresh, Edit, Add, Logout } from '@mui/icons-material';
+import { Add, Refresh, Logout, Edit, Delete } from '@mui/icons-material';
 import {
-    fetchUsers, deleteUser, updateUser, createUser
-} from '../services/users/usersService.ts';
+    DataGrid,
+    type GridColDef,
+    type GridRenderCellParams,
+    type GridPaginationModel,
+    type GridSortModel
+} from '@mui/x-data-grid';
+import {
+    fetchUsers,
+    deleteUser,
+    updateUser,
+    createUser
+} from '../services/users/usersService';
 import type { User, CreateUserParams } from '../services/users/types';
-import { clearToken } from "../services/auth/storage.ts";
+import { clearToken } from '../services/auth/storage';
 
 const emerald = '#2ecc71';
-const emeraldDark = '#27ae60';
+
+const theme = createTheme({
+    palette: {
+        mode: 'dark',
+        primary: { main: emerald },
+        background: { default: '#121212', paper: '#1e1e1e' }
+    },
+    components: {
+        MuiDataGrid: {
+            styleOverrides: {
+                root: { border: 'none', color: '#fff' },
+                columnHeaders: { backgroundColor: '#1f1f1f', color: emerald },
+                cell: { color: '#fff' },
+                footerContainer: { backgroundColor: '#1f1f1f' },
+                row: {
+                    '&.Mui-even': { backgroundColor: '#2a2a2a' },
+                    '&.Mui-odd': { backgroundColor: '#1e1e1e' }
+                }
+            }
+        }
+    }
+});
 
 export default function AdminPage() {
+    const navigate = useNavigate();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const navigate = useNavigate();
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
-    const initialFormState = { login: '', password: '', roleID: 2 };
+    const initialFormState: CreateUserParams = { login: '', password: '', roleID: 2 };
     const [formData, setFormData] = useState<CreateUserParams>(initialFormState);
+
+    const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 });
+    const [sortModel, setSortModel] = useState<GridSortModel>([]);
 
     const loadUsers = async () => {
         setLoading(true);
@@ -40,11 +91,13 @@ export default function AdminPage() {
         }
     };
 
+    useEffect(() => { loadUsers(); }, []);
+
     const handleDelete = async (id: number) => {
         if (!confirm('Удалить пользователя?')) return;
         try {
             await deleteUser(id);
-            setUsers((prev) => prev.filter((u) => u.id !== id));
+            setUsers(prev => prev.filter(u => u.id !== id));
             setSuccessMessage('Пользователь удалён');
         } catch (e: any) {
             setError(e.message || 'Ошибка при удалении');
@@ -53,11 +106,7 @@ export default function AdminPage() {
 
     const handleEdit = (user: User) => {
         setEditingUser(user);
-        setFormData({
-            login: user.login,
-            password: '',
-            roleID: user.role.id,
-        });
+        setFormData({ login: user.login, password: '', roleID: user.role.id });
         setDialogOpen(true);
     };
 
@@ -67,20 +116,15 @@ export default function AdminPage() {
         setDialogOpen(true);
     };
 
-    const handleLogout = () => {
-        clearToken();
-        navigate('/');
-    };
-
     const handleSave = async () => {
         try {
             if (editingUser) {
                 const updated = await updateUser(editingUser.id, formData);
-                setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+                setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
                 setSuccessMessage('Пользователь обновлён');
             } else {
                 const created = await createUser(formData);
-                setUsers((prev) => [...prev, created]);
+                setUsers(prev => [...prev, created]);
                 setSuccessMessage('Пользователь создан');
             }
             setDialogOpen(false);
@@ -89,124 +133,124 @@ export default function AdminPage() {
         }
     };
 
-    useEffect(() => {
-        loadUsers();
-    }, []);
+    const handleLogout = () => {
+        clearToken();
+        navigate('/');
+    };
+
+    const columns: GridColDef[] = [
+        { field: 'id', headerName: 'ID', width: 90 },
+        { field: 'login', headerName: 'Логин', flex: 1, sortable: true },
+        {
+            field: 'role',
+            headerName: 'Роль',
+            flex: 1,
+            sortable: true,
+            renderCell: (params: GridRenderCellParams<User>) => {
+                const roleName = params.row.role?.name;
+                return roleName === 'admin'
+                    ? 'Админ'
+                    : roleName === 'teacher'
+                        ? 'Учитель'
+                        : roleName ?? '';
+            }
+        },
+        {
+            field: 'actions', headerName: 'Действия', width: 120, sortable: false,
+            renderCell: (params: GridRenderCellParams<User>) => (
+                <>
+                    <IconButton size="small" onClick={() => handleEdit(params.row)} color="primary">
+                        <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: '#e74c3c' }}>
+                        <Delete fontSize="small" />
+                    </IconButton>
+                </>
+            )
+        }
+    ];
 
     return (
-        <Container maxWidth="md" sx={{ py: 4, color: '#fff' }}>
-            <Typography variant="h4" gutterBottom>
-                Панель администратора
-            </Typography>
+        <ThemeProvider theme={theme}>
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Typography variant="h4" gutterBottom color="primary">Панель администратора</Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    <Button variant="contained" onClick={handleCreate} startIcon={<Add />}>Добавить</Button>
+                    <Button variant="outlined" onClick={loadUsers} startIcon={<Refresh />}>Обновить</Button>
+                    <Button variant="text" color="error" onClick={handleLogout} startIcon={<Logout />} sx={{ marginLeft: 'auto' }}>Выйти</Button>
+                </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <Button
-                    variant="contained"
-                    onClick={handleCreate}
-                    sx={{ backgroundColor: emerald, '&:hover': { backgroundColor: emeraldDark } }}
-                    startIcon={<Add />}
-                >
-                    Добавить пользователя
-                </Button>
+                {loading ? (
+                    <CircularProgress color="primary" sx={{ mt: 2 }} />
+                ) : (
+                    <Box sx={{ height: 500, background: 'paper' }}>
+                        <DataGrid
+                            rows={users}
+                            columns={columns}
+                            pagination
+                            paginationModel={paginationModel}
+                            onPaginationModelChange={model => setPaginationModel(model)}
+                            pageSizeOptions={[5, 10, 20]}
+                            sortingMode="client"
+                            sortModel={sortModel}
+                            onSortModelChange={model => setSortModel(model)}
+                            getRowId={row => row.id}
+                            sx={{
+                                height: 600,
+                                width: '100%',
+                                fontSize: '1rem', // Увеличение размера шрифта
+                                '& .MuiDataGrid-columnHeaders': {
+                                    fontSize: '1.1rem', // Размер шрифта заголовков
+                                },
+                                '& .MuiDataGrid-cell': {
+                                    fontSize: '1rem', // Размер шрифта ячеек
+                                },
+                            }}
+                        />
+                    </Box>
+                )}
 
-                <Button
-                    variant="outlined"
-                    onClick={loadUsers}
-                    startIcon={<Refresh />}
-                    sx={{ borderColor: emerald, color: emerald, '&:hover': { borderColor: emeraldDark, color: emeraldDark } }}
-                >
-                    Обновить
-                </Button>
-
-                <Button
-                    variant="text"
-                    color="error"
-                    onClick={handleLogout}
-                    startIcon={<Logout />}
-                    sx={{ marginLeft: 'auto' }}
-                >
-                    Выйти
-                </Button>
-            </Box>
-
-            {loading ? (
-                <CircularProgress sx={{ color: emerald, mt: 2 }} />
-            ) : (
-                <Table sx={{ mt: 2, backgroundColor: '#2c2c2c', borderRadius: 2, overflow: 'hidden' }}>
-                    <TableHead>
-                        <TableRow sx={{ backgroundColor: '#1f1f1f' }}>
-                            <TableCell sx={{ color: emerald }}>ID</TableCell>
-                            <TableCell sx={{ color: emerald }}>Логин</TableCell>
-                            <TableCell sx={{ color: emerald }}>Роль</TableCell>
-                            <TableCell align="right" sx={{ color: emerald }}>Действия</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {users.map((user, idx) => (
-                            <TableRow
-                                key={user.id}
-                                sx={{
-                                    backgroundColor: idx % 2 === 0 ? '#2a2a2a' : '#1e1e1e',
-                                    '&:last-child td': { borderBottom: 0 }
-                                }}
+                {/* Диалог */}
+                <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+                    <DialogTitle>{editingUser ? 'Редактировать' : 'Создать'} пользователя</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            fullWidth label="Логин" value={formData.login}
+                            onChange={e => setFormData({ ...formData, login: e.target.value })}
+                            margin="normal"
+                        />
+                        <TextField
+                            fullWidth label="Пароль" type="password" value={formData.password}
+                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                            margin="normal"
+                        />
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="role-select-label">Роль</InputLabel>
+                            <Select
+                                labelId="role-select-label"
+                                value={formData.roleID}
+                                label="Роль"
+                                onChange={e => setFormData({ ...formData, roleID: Number(e.target.value) })}
                             >
-                                <TableCell sx={{ color: '#fff' }}>{user.id}</TableCell>
-                                <TableCell sx={{ color: '#fff' }}>{user.login}</TableCell>
-                                <TableCell sx={{ color: '#fff' }}>{user.role.name}</TableCell>
-                                <TableCell align="right">
-                                    <IconButton onClick={() => handleEdit(user)} sx={{ color: emerald }} size="small">
-                                        <Edit />
-                                    </IconButton>
-                                    <IconButton onClick={() => handleDelete(user.id)} sx={{ color: '#e74c3c' }} size="small">
-                                        <Delete />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            )}
+                                <MenuItem value={1}>Админ</MenuItem>
+                                <MenuItem value={2}>Учитель</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDialogOpen(false)}>Отмена</Button>
+                        <Button onClick={handleSave} variant="contained" color="primary">Сохранить</Button>
+                    </DialogActions>
+                </Dialog>
 
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-                <DialogTitle sx={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
-                    {editingUser ? 'Редактировать пользователя' : 'Создать пользователя'}
-                </DialogTitle>
-                <DialogContent sx={{ backgroundColor: '#1e1e1e' }}>
-                    <TextField
-                        fullWidth
-                        label="Логин"
-                        value={formData.login}
-                        onChange={(e) => setFormData({ ...formData, login: e.target.value })}
-                        margin="normal"
-                        InputLabelProps={{ style: { color: '#ccc' } }}
-                        InputProps={{ style: { color: '#fff' } }}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Пароль"
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        margin="normal"
-                        InputLabelProps={{ style: { color: '#ccc' } }}
-                        InputProps={{ style: { color: '#fff' } }}
-                    />
-                </DialogContent>
-                <DialogActions sx={{ backgroundColor: '#1e1e1e' }}>
-                    <Button onClick={() => setDialogOpen(false)} color="inherit">Отмена</Button>
-                    <Button onClick={handleSave} sx={{ backgroundColor: emerald, color: '#fff', '&:hover': { backgroundColor: emeraldDark } }}>
-                        Сохранить
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
-                <Alert severity="error">{error}</Alert>
-            </Snackbar>
-
-            <Snackbar open={!!successMessage} autoHideDuration={4000} onClose={() => setSuccessMessage(null)}>
-                <Alert severity="success">{successMessage}</Alert>
-            </Snackbar>
-        </Container>
+                {/* Уведомления */}
+                <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
+                    <Alert severity="error">{error}</Alert>
+                </Snackbar>
+                <Snackbar open={!!successMessage} autoHideDuration={4000} onClose={() => setSuccessMessage(null)}>
+                    <Alert severity="success">{successMessage}</Alert>
+                </Snackbar>
+            </Container>
+        </ThemeProvider>
     );
 }

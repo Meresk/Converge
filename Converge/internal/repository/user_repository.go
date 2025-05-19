@@ -39,7 +39,14 @@ func (r *userRepositoryImpl) GetByID(id int64) (*model.User, error) {
 }
 
 func (r *userRepositoryImpl) Create(user *model.User) error {
-	return r.db.Preload("Role").Create(user).Error
+	if err := r.db.Create(user).Error; err != nil {
+		return err
+	}
+	
+	if err := r.db.Preload("Role").First(user, user.ID).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *userRepositoryImpl) FindAll() ([]*model.User, error) {
