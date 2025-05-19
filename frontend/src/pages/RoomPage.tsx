@@ -1,121 +1,125 @@
+import React, { useState } from "react";
 import {
-    Room,
-    createLocalTracks,
-    RoomEvent,
-    Track,
-    VideoPresets,
-} from 'livekit-client';
-import  { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button } from '@mui/material';
+    ControlBar,
+    GridLayout,
+    LiveKitRoom,
+    ParticipantTile,
+    RoomAudioRenderer,
+    useTracks,
+    Chat
+} from "@livekit/components-react";
+import "@livekit/components-styles";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Track } from "livekit-client";
 
-type LocationState = { serverUrl?: string; token?: string };
+const serverUrl = "ws://localhost:7880";
+type LocationState = { token?: string };
 
-export default function RoomPage() {
-    const { state } = useLocation();
-    const { serverUrl, token } = state as LocationState;
+const RoomPage: React.FC = () => {
+    const location = useLocation();
     const navigate = useNavigate();
 
-    const [room, setRoom] = useState<Room | null>(null);
-    const [error, setError] = useState<string>();
-    const localV = useRef<HTMLVideoElement>(null);
-    const remoteContainer = useRef<HTMLDivElement>(null);
+    // Состояние для управления видимостью чата
+    const [chatVisible, setChatVisible] = useState(true);
 
-    const rtcConfig: RTCConfiguration = {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            {
-                urls: 'turn:your.turn.server:5349?transport=tcp',
-                username: 'TURN_USER',
-                credential: 'TURN_PASS',
-            },
-        ],
+    const handleOnLeave = () => {
+        navigate(-1);
     };
 
-    useEffect(() => {
-        if (!token) {
-            setError('Отсутствуют token');
-            return;
-        }
-        const roomInstance = new Room({ adaptiveStream: true, dynacast: true });
-
-        (async () => {
-            try {
-                // 1) Подключаемся к серверу и комнате
-                await roomInstance.connect("ws://localhost:7880", token, { rtcConfig });
-                setRoom(roomInstance);
-
-                // 2) Создаём локальные треки
-                const localTracks = await createLocalTracks({
-                    audio: true,
-                    video: { resolution: VideoPresets.h720.resolution },
-                });
-
-                // 3) Публикуем каждый трек по‑отдельности
-                for (const t of localTracks) {
-                    await roomInstance.localParticipant.publishTrack(t);
-                }
-
-                // 4) Отображаем локальное видео
-                localTracks.forEach(t => {
-                    if (t.kind === Track.Kind.Video && localV.current) {
-                        t.attach(localV.current);
-                    }
-                });
-
-                // 5) Подписываемся на треки участников
-                roomInstance.on(RoomEvent.TrackSubscribed, track => {
-                    if (track.kind === Track.Kind.Video && remoteContainer.current) {
-                        const el = track.attach();
-                        el.style.width = '200px';
-                        el.style.margin = '4px';
-                        remoteContainer.current.appendChild(el);
-                    }
-                });
-
-                roomInstance.on(RoomEvent.TrackUnsubscribed, track => {
-                    track.detach().forEach(el => el.remove());
-                });
-
-                // 6) Возврат к списку комнат при отключении
-                roomInstance.on(RoomEvent.Disconnected, () => {
-                    navigate('/student');
-                });
-            } catch (e) {
-                console.error(e);
-                setError('Не удалось подключиться к LiveKit');
-            }
-        })();
-
-        return () => {
-            roomInstance.disconnect();
-        };
-    }, [serverUrl, token, navigate]);
-
-    if (error) {
-        return (
-            <Box sx={{ p: 4, color: 'red' }}>
-                <Typography>{error}</Typography>
-                <Button onClick={() => navigate('/student')}>Назад</Button>
-            </Box>
-        );
-    }
+    // Получаем токен и имя комнаты из state
+    const state = location.state as LocationState;
+    const token = state?.token;
 
     return (
-        <Box sx={{ bgcolor: '#121212', color: 'white', p: 3 }}>
-            <Typography variant="h4">Комната LiveKit</Typography>
-            <Typography>Ваше видео:</Typography>
-            <video ref={localV} autoPlay muted playsInline style={{ width: 320, background: 'black' }} />
-            <Typography sx={{ mt: 2 }}>Видео участников:</Typography>
-            <Box ref={remoteContainer} sx={{ display: 'flex', flexWrap: 'wrap', mt: 1 }} />
-            <Button
-                variant="contained"
-                color="error"
-                sx={{ mt: 4 }}
-                onClick={() => room?.disconnect()}
+        <LiveKitRoom
+            video={false}
+            audio={false}
+            token={token}
+            serverUrl={serverUrl}
+            data-lk-theme="default"
+            style={{
+                height: "100vh",
+                display: "flex",
+                flexDirection: "row",
+                overflow: "hidden", // Предотвращаем прокрутку
+            }}
+            onDisconnected={handleOnLeave}
+        >
+            <MyVideoConference chatVisible={chatVisible} />
+            <RoomAudioRenderer />
+
+            {/* Control Bar */}
+            <ControlBar
+                style={{
+                    position: "absolute",
+                    bottom: 0,
+                    width: "100%",
+                    zIndex: 2,
+                }}
+            />
+
+            {/* Кнопка для скрытия/показа чата */}
+            <button
+                onClick={() => setChatVisible(prev => !prev)}
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    zIndex: 3,
+                    padding: "10px",
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    color: "white",
+                    borderRadius: "5px",
+                }}
             >
-                Выйти из комнаты
-            </Button>
-        </Box>
+                {chatVisible ? "Hide Chat" : "Show Chat"}
+            </button>
+
+            {/* Компонент чата с передачей сообщений */}
+            <Chat
+                style={{
+                    position: "absolute",
+                    right: "0px",
+                    bottom: "var(--lk-control-bar-height)",
+                    width: chatVisible ? "300px" : "0", // Скрытие чата
+                    height: "calc(100vh - var(--lk-control-bar-height))", // Высота чата
+                    backgroundColor: "rgba(0, 0, 0, 0.7)",
+                    borderRadius: "8px",
+                    zIndex: 1,
+                    overflow: "auto", // Добавление прокрутки для чата
+                    transition: "width 0.3s ease-in-out", // Плавное изменение ширины
+                }}
+            />
+        </LiveKitRoom>
+    );
+};
+
+interface MyVideoConferenceProps {
+    chatVisible: boolean;
+}
+
+function MyVideoConference({ chatVisible }: MyVideoConferenceProps) {
+    const tracks = useTracks(
+        [
+            { source: Track.Source.Camera, withPlaceholder: false },
+            { source: Track.Source.ScreenShare, withPlaceholder: false },
+        ],
+        { onlySubscribed: false }
+    );
+
+    return (
+        <GridLayout
+            tracks={tracks}
+            style={{
+                height: "calc(100vh - var(--lk-control-bar-height))",
+                width: chatVisible ? "calc(100vw - 300px)" : "100vw", // Регулируем ширину при скрытии чата
+                marginRight: chatVisible ? "300px" : "0", // Отступ для чата
+                transition: "width 0.3s ease-in-out", // Плавное изменение ширины
+            }}
+        >
+            <ParticipantTile />
+        </GridLayout>
     );
 }
+
+export default RoomPage;
