@@ -32,7 +32,16 @@ func (h *UserHandler) GetAll(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(users)
+	response := make([]fiber.Map, len(users))
+	for i, user := range users {
+		response[i] = fiber.Map{
+			"id":    user.ID,
+			"login": user.Login,
+			"role":  user.Role,
+		}
+	}
+
+	return c.JSON(response)
 }
 
 func (h *UserHandler) GetByID(c *fiber.Ctx) error {
@@ -51,20 +60,24 @@ func (h *UserHandler) GetByID(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(user)
+	return c.JSON(fiber.Map{
+		"id":    user.ID,
+		"login": user.Login,
+		"role":  user.Role,
+	})
 }
 
-func (h *UserHandler) GetByLogin(c *fiber.Ctx) error {
-	login := c.Query("login")
-	user, err := h.svc.GetByLogin(login)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "user not found",
-		})
-	}
-
-	return c.JSON(user)
-}
+//func (h *UserHandler) GetByLogin(c *fiber.Ctx) error {
+//	login := c.Query("login")
+//	user, err := h.svc.GetByLogin(login)
+//	if err != nil {
+//		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+//			"message": "user not found",
+//		})
+//	}
+//
+//	return c.JSON(user)
+//}
 
 func (h *UserHandler) Create(c *fiber.Ctx) error {
 	var input model.User
@@ -81,7 +94,11 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(created)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"id":    created.ID,
+		"login": created.Login,
+		"role":  created.Role,
+	})
 }
 
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
@@ -125,5 +142,9 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(updated)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"id":    updated.ID,
+		"login": updated.Login,
+		"role":  updated.Role,
+	})
 }

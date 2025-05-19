@@ -3,8 +3,6 @@ import type {CreateRoomParams, JoinRoomParams, JoinRoomResponse, Room} from "./t
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-
-
 export async function fetchOpenRooms(): Promise<Room[]> {
     const res = await fetch(`${API_BASE}/api/rooms/open`, {
         headers: {'Content-Type': 'application/json'},

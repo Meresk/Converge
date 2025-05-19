@@ -112,11 +112,14 @@ export default function TeacherPage() {
 
             <Button
                 variant="contained"
-                color="primary"
                 sx={{
                     fontWeight: 'bold',
-                    boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
+                    backgroundColor: '#2ecc71',
+                    boxShadow: '0 2px 8px rgba(46, 204, 113, 0.4)',
                     mb: 2,
+                    '&:hover': {
+                        backgroundColor: '#27ae60',
+                    },
                 }}
                 onClick={() => setShowModal(true)}
             >

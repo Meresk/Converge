@@ -4,16 +4,23 @@ services:
   livekit:
     image: livekit/livekit-server:latest
     restart: always
+    #network_mode: host
+
     ports:
       - "7880:7880"
       - "7881:7881"
-      - "7882:7882"
+      - "7882:7882/udp"
       - "7883:7883/udp"
       - "7884:7884/udp"
+      # - "50000-60000:50000-60000/udp"
+
     command:
       - livekit-server
-      - --health_port
-      - "7880"
+      - --health_port=7880
+      #- --rtc.port_range_start=0
+      #- --rtc.port_range_end=0
+      #- --rtc.udp_port=7882
+
     environment:
       #Values of api key and api secret for develop, please change them in production
       LIVEKIT_KEYS: "LK1234567890: abcdef1234567890abcdef1234567890"
@@ -21,6 +28,7 @@ services:
       LIVEKIT_INGRESS: ""
       LIVEKIT_CERT: ""
       LIVEKIT_KEY: ""
+
 
   mysql:
     image: mysql:8.0

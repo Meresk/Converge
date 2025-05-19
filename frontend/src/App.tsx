@@ -5,6 +5,8 @@ import LoginPage from "./pages/LoginPage.tsx";
 import StudentPage from "./pages/StudentPage.tsx";
 import TeacherPage from "./pages/TeacherPage.tsx";
 import {ProtectedRoute} from "./components/ProtectedRoute.tsx";
+import AdminPage from "./pages/AdminPage.tsx";
+import RoomPage from "./pages/RoomPage.tsx";
 
 
 function App() {
@@ -13,7 +15,9 @@ function App() {
           <Route path="/" element={<RoleSelectPage />} />
           <Route path="/login" element={  <LoginPage /> } />
           <Route path="/student" element={<StudentPage />} />
-          <Route path="/teacher" element={ <ProtectedRoute> <TeacherPage /> </ProtectedRoute>} />
+          <Route path="/teacher" element={ <ProtectedRoute allowedRoles={['teacher']}> <TeacherPage /> </ProtectedRoute>} />
+          <Route path="/admin" element={ <ProtectedRoute allowedRoles={['admin']} > <AdminPage /> </ProtectedRoute>} />
+          <Route path="/room" element={ <RoomPage/> } />
           <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
   )

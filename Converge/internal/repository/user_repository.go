@@ -31,7 +31,7 @@ func (r *userRepositoryImpl) GetByLogin(login string) (*model.User, error) {
 
 func (r *userRepositoryImpl) GetByID(id int64) (*model.User, error) {
 	var user model.User
-	if err := r.db.First(&user, id).Error; err != nil {
+	if err := r.db.Preload("Role").First(&user, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -39,12 +39,19 @@ func (r *userRepositoryImpl) GetByID(id int64) (*model.User, error) {
 }
 
 func (r *userRepositoryImpl) Create(user *model.User) error {
-	return r.db.Create(user).Error
+	if err := r.db.Create(user).Error; err != nil {
+		return err
+	}
+	
+	if err := r.db.Preload("Role").First(user, user.ID).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *userRepositoryImpl) FindAll() ([]*model.User, error) {
 	var users []*model.User
-	if err := r.db.Find(&users).Error; err != nil {
+	if err := r.db.Preload("Role").Find(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -56,5 +63,5 @@ func (r *userRepositoryImpl) Delete(id int64) error {
 }
 
 func (r *userRepositoryImpl) Update(user *model.User) error {
-	return r.db.Save(user).Error
+	return r.db.Preload("Role").Save(user).Error
 }

@@ -6,6 +6,7 @@ import {
     Grid,
     IconButton,
     Tooltip,
+    Container,
 } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { fetchOpenRooms, joinRoom } from '../services/rooms/roomsService.ts';
@@ -60,7 +61,7 @@ export default function StudentPage() {
                 password: joinPassword,
             });
             console.log(token);
-
+            navigate('/room', { state: { token } });
         } catch (error) {
             if (error instanceof Error) {
                 setJoinError(error.message);
@@ -75,55 +76,76 @@ export default function StudentPage() {
     };
 
     return (
-        <Box sx={{ height: '100vh', bgcolor: '#121212', p: 3, position: 'relative' }}>
-            {/* Кнопка выхода в правом верхнем углу */}
+        <Box
+            sx={{
+                minHeight: 'calc(100vh - 32px - 64px)', // pt: 4 (32px) и pb: 8 (64px)
+                bgcolor: '#121212',
+                pt: 4,
+                pb: 8,
+                position: 'relative',
+                overflowX: 'hidden',
+            }}
+        >
             <Tooltip title="Выйти">
                 <IconButton
                     onClick={handleLogout}
                     sx={{
                         position: 'fixed',
-                        top: 16,
+                        bottom: 16,
                         right: 16,
                         color: 'white',
                         bgcolor: 'rgba(255,255,255,0.1)',
                         '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                        zIndex: 10,
                     }}
-                    size="small"
                 >
                     <ExitToAppIcon />
                 </IconButton>
             </Tooltip>
 
-            <Typography variant="h4" gutterBottom color="white" sx={{ mb: 4 }}>
-                Список открытых комнат
-            </Typography>
+            <Container maxWidth="xl">
+                <Typography
+                    variant="h4"
+                    align="center"
+                    color="white"
+                    sx={{
+                        mb: 5,
+                        fontWeight: 'bold',
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                    }}
+                >
+                    Список активных комнат
+                </Typography>
 
-            <Grid container columns={12} columnSpacing={3} rowSpacing={3}>
-                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                {rooms.map((room, index) => ( // @ts-expect-error
-                    <Grid
-                        xs={12}
-                        sm={6}
-                        md={4}
-                        key={room.id}
-                        sx={{
-                            opacity: 0,
-                            transform: 'translateY(20px)',
-                            animation: 'fadeSlideIn 0.5s forwards',
-                            animationDelay: `${index * 0.1}s`,
-                            '@keyframes fadeSlideIn': {
-                                to: { opacity: 1, transform: 'translateY(0)' },
-                            },
-                        }}
-                    >
-                        <RoomCard
-                            name={room.name}
-                            isProtected={room.isProtected}
-                            onClick={() => handleJoinClick(room.id, room.isProtected)}
-                        />
-                    </Grid>
-                ))}
-            </Grid>
+                <Grid container spacing={4} justifyContent="center">
+                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                    {rooms.map((room, index) => ( // @ts-expect-error
+                        <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            key={room.id}
+                            sx={{
+                                opacity: 0,
+                                transform: 'translateY(20px)',
+                                animation: 'fadeSlideIn 0.5s forwards',
+                                animationDelay: `${index * 0.1}s`,
+                                '@keyframes fadeSlideIn': {
+                                    to: { opacity: 1, transform: 'translateY(0)' },
+                                },
+                            }}
+                        >
+                            <RoomCard
+                                name={room.name}
+                                isProtected={room.isProtected}
+                                onClick={() => handleJoinClick(room.id, room.isProtected)}
+                            />
+                        </Grid>
+                    ))}
+                </Grid>
+            </Container>
 
             <JoinRoomDialog
                 open={joinModalOpen}
