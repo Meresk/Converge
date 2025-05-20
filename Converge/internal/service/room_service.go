@@ -14,7 +14,7 @@ type RoomService interface {
 	GetAll() ([]*model.Room, error)
 	GetById(id int64) (*model.Room, error)
 	CloseRoom(id int64, ownerID int64) error
-	JoinRoom(roomID int64, nickname, password string) (string, error)
+	JoinRoom(roomID int64, nickname, password string, isAuthorized bool) (string, error)
 	GetAllOpenRooms() ([]*model.Room, error)
 }
 
@@ -33,7 +33,7 @@ func (s *roomService) GetAllOpenRooms() ([]*model.Room, error) {
 	return s.roomRepo.FindAllOpen()
 }
 
-func (s *roomService) JoinRoom(roomID int64, nickname, password string) (string, error) {
+func (s *roomService) JoinRoom(roomID int64, nickname, password string, isAuthorized bool) (string, error) {
 	room, err := s.roomRepo.GetById(roomID)
 	if err != nil {
 		return "", errors.New("room Not Found")
@@ -56,7 +56,13 @@ func (s *roomService) JoinRoom(roomID int64, nickname, password string) (string,
 	}
 
 	at := auth.NewAccessToken(s.apiKey, s.apiSecret)
-	vg := &auth.VideoGrant{RoomJoin: true, Room: room.Name}
+	vg := &auth.VideoGrant{
+		RoomJoin:       true,
+		Room:           room.Name,
+		CanSubscribe:   ptr(true),
+		CanPublish:     &isAuthorized,
+		CanPublishData: ptr(true),
+	}
 	at.SetVideoGrant(vg).SetIdentity(nickname).SetValidFor(8 * time.Hour)
 
 	token, err := at.ToJWT()
@@ -65,6 +71,10 @@ func (s *roomService) JoinRoom(roomID int64, nickname, password string) (string,
 	}
 
 	return token, nil
+}
+
+func ptr[T any](v T) *T {
+	return &v
 }
 
 func (s *roomService) Create(name, password string, ownerID int64) (*model.Room, error) {

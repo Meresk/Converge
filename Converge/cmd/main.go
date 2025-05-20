@@ -54,7 +54,7 @@ func main() {
 	// Хэндлеры
 	userH := handler.NewUserHandler(userSvc)
 	roleH := handler.NewRoleHandler(roleSvc)
-	roomH := handler.NewRoomHandler(roomSvc)
+	roomH := handler.NewRoomHandler(roomSvc, cfg.JWTSecret)
 	authH := handler.NewAuthHandler(authSvc)
 
 	// Middlewares

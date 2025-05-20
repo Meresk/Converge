@@ -41,9 +41,10 @@ export async function createRoom(params: CreateRoomParams): Promise<Room> {
 }
 
 export async function joinRoom(params: JoinRoomParams): Promise<string> {
+    const token = getToken();
     const res = await fetch(`${API_BASE}/api/rooms/join`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : ``},
         body: JSON.stringify(params),
     })
     if (!res.ok) {
@@ -52,4 +53,16 @@ export async function joinRoom(params: JoinRoomParams): Promise<string> {
     }
     const data: JoinRoomResponse = await res.json();
     return data.token;
+}
+
+export async function closeRoom(id: number) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/rooms/${id}/close`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+    })
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message);
+    }
 }

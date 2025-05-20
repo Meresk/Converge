@@ -60,8 +60,7 @@ export default function StudentPage() {
                 nickname: trimmedName,
                 password: joinPassword,
             });
-            console.log(token);
-            navigate('/room', { state: { token } });
+            navigate('/room', { state: { token, selectedRoomId } });
         } catch (error) {
             if (error instanceof Error) {
                 setJoinError(error.message);

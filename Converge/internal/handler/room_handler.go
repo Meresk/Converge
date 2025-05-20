@@ -2,16 +2,20 @@ package handler
 
 import (
 	"Converge/internal/service"
+	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"strconv"
+	"strings"
 )
 
 type RoomHandler struct {
-	svc service.RoomService
+	svc       service.RoomService
+	jwtSecret string
 }
 
-func NewRoomHandler(svc service.RoomService) *RoomHandler {
-	return &RoomHandler{svc: svc}
+func NewRoomHandler(svc service.RoomService, jwtSecret string) *RoomHandler {
+	return &RoomHandler{svc: svc, jwtSecret: jwtSecret}
 }
 
 func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
@@ -115,7 +119,6 @@ func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// TODO: сделать разделение по ролям для разных грантов, предположительно можно отправлять за учиетля на этот запрос заголовок авторизации
 func (h *RoomHandler) Join(c *fiber.Ctx) error {
 	var req struct {
 		Id       int64  `json:"id"`
@@ -128,7 +131,22 @@ func (h *RoomHandler) Join(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := h.svc.JoinRoom(req.Id, req.Nickname, req.Password)
+	authHeader := c.Get("Authorization")
+	isAuthorized := false
+	if authHeader != "" {
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("Unexpected signing method")
+			}
+			return []byte(h.jwtSecret), nil
+		})
+		if err == nil || token.Valid {
+			isAuthorized = true
+		}
+	}
+
+	token, err := h.svc.JoinRoom(req.Id, req.Nickname, req.Password, isAuthorized)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
