@@ -61,7 +61,7 @@ func (s *roomService) JoinRoom(roomID int64, nickname, password string, isAuthor
 		Room:           room.Name,
 		CanSubscribe:   ptr(true),
 		CanPublish:     &isAuthorized,
-		CanPublishData: ptr(true),
+		CanPublishData: &isAuthorized,
 	}
 	at.SetVideoGrant(vg).SetIdentity(nickname).SetValidFor(8 * time.Hour)
 

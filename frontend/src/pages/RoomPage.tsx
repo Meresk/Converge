@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-    ControlBar,
     GridLayout,
     LiveKitRoom,
     ParticipantTile,
@@ -13,6 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Track } from "livekit-client";
 import {closeRoom} from "../services/rooms/roomsService.ts";
 import {getToken} from "../services/auth/storage.ts";
+import {CustomControlBar} from "../components/CustomControlBar.tsx";
 
 const serverUrl = "ws://localhost:7880";
 type LocationState = { token?: string, selectedRoomId?: number };
@@ -67,15 +67,16 @@ const RoomPage: React.FC = () => {
             <MyVideoConference chatVisible={chatVisible}/>
             <RoomAudioRenderer/>
 
-                {/* Control Bar */}
-                <ControlBar
-                    style={{
-                        position: "absolute",
-                        bottom: 0,
-                        width: "100%",
-                        zIndex: 2,
-                    }}
-                ></ControlBar>
+            <div style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: "100%",
+                zIndex: 10,
+                backgroundColor: "rgba(0,0,0,0.7)"
+            }}>
+                <CustomControlBar />
+            </div>
 
                 {jwtToken && (
                     <button
@@ -138,7 +139,6 @@ interface MyVideoConferenceProps {
 function MyVideoConference({chatVisible}: MyVideoConferenceProps) {
     const tracks = useTracks(
         [
-            {source: Track.Source.Camera, withPlaceholder: false},
             {source: Track.Source.ScreenShare, withPlaceholder: false },
         ],
         { onlySubscribed: false }

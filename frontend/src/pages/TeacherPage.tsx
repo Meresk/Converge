@@ -129,7 +129,18 @@ export default function TeacherPage() {
     };
 
     const columns: GridColDef[] = [
-        { field: 'id', headerName: 'ID', width: 90 },
+        {
+            field: 'index',
+            headerName: '№',
+            width: 70,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const rowIds = params.api.getAllRowIds();
+                const index = rowIds.indexOf(params.id);
+                return index + 1;
+            }
+        },
         { field: 'name', headerName: 'Название', flex: 1 },
         {
             field: 'startsAt',
@@ -189,6 +200,7 @@ export default function TeacherPage() {
             <Button
                 variant="contained"
                 sx={{
+                    height: 44,
                     fontWeight: 'bold',
                     backgroundColor: '#2ecc71',
                     boxShadow: '0 2px 8px rgba(46, 204, 113, 0.4)',
@@ -208,20 +220,21 @@ export default function TeacherPage() {
                 exclusive
                 onChange={handleViewChange}
                 sx={{
+                    height: 44,
                     mb: 3,
                     backgroundColor: '#1e1e1e',
                     border: '1px solid #2ecc71',
+                    boxShadow: '0 2px 8px rgba(46, 204, 113, 0.4)',
                     borderRadius: '8px',
                     '& .MuiToggleButton-root': {
                         flex: 1,
-                        color: '#ccc',
+                        color: '#ffffff',
                         border: 'none',
                         '&:hover': {
                             backgroundColor: '#2ecc7122',
                         },
                         '&.Mui-selected': {
                             backgroundColor: '#2ecc71',
-                            color: '#000',
                             '&:hover': {
                                 backgroundColor: '#27ae60',
                             },
@@ -326,7 +339,7 @@ export default function TeacherPage() {
                             <DataGrid
                                 rows={allRooms}
                                 columns={columns}
-                                pageSizeOptions={[5, 10, 15, 20, 50, 100]}
+                                pageSizeOptions={[5, 10, 20, 50, 100]}
                                 localeText={ruRU.components.MuiDataGrid.defaultProps.localeText}
                                 initialState={{
                                     pagination: { paginationModel: { pageSize: 10, page: 0 } },

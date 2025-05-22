@@ -22,6 +22,7 @@ import {
     createTheme,
     ThemeProvider
 } from '@mui/material';
+import { ruRU } from '@mui/x-data-grid/locales';
 import { Add, Refresh, Logout, Edit, Delete } from '@mui/icons-material';
 import {
     DataGrid,
@@ -139,7 +140,18 @@ export default function AdminPage() {
     };
 
     const columns: GridColDef[] = [
-        { field: 'id', headerName: 'ID', width: 90 },
+        {
+            field: 'index',
+            headerName: '№',
+            width: 70,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const rowIds = params.api.getAllRowIds();
+                const index = rowIds.indexOf(params.id);
+                return index + 1;
+            }
+        },
         { field: 'login', headerName: 'Логин', flex: 1, sortable: true },
         {
             field: 'role',
@@ -149,9 +161,9 @@ export default function AdminPage() {
             renderCell: (params: GridRenderCellParams<User>) => {
                 const roleName = params.row.role?.name;
                 return roleName === 'admin'
-                    ? 'Админ'
+                    ? 'Администратор'
                     : roleName === 'teacher'
-                        ? 'Учитель'
+                        ? 'Преподаватель'
                         : roleName ?? '';
             }
         },
@@ -172,7 +184,7 @@ export default function AdminPage() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Container maxWidth="xl" sx={{ py: 4 }}>
                 <Typography variant="h4" gutterBottom color="primary">Панель администратора</Typography>
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                     <Button variant="contained" onClick={handleCreate} startIcon={<Add />}>Добавить</Button>
@@ -187,10 +199,11 @@ export default function AdminPage() {
                         <DataGrid
                             rows={users}
                             columns={columns}
+                            localeText={ruRU.components.MuiDataGrid.defaultProps.localeText}
                             pagination
                             paginationModel={paginationModel}
                             onPaginationModelChange={model => setPaginationModel(model)}
-                            pageSizeOptions={[5, 10, 20]}
+                            pageSizeOptions={[5, 10, 20, 50, 100]}
                             sortingMode="client"
                             sortModel={sortModel}
                             onSortModelChange={model => setSortModel(model)}
@@ -232,8 +245,8 @@ export default function AdminPage() {
                                 label="Роль"
                                 onChange={e => setFormData({ ...formData, roleID: Number(e.target.value) })}
                             >
-                                <MenuItem value={1}>Админ</MenuItem>
-                                <MenuItem value={2}>Учитель</MenuItem>
+                                <MenuItem value={1}>Администратор</MenuItem>
+                                <MenuItem value={2}>Преподаватель</MenuItem>
                             </Select>
                         </FormControl>
                     </DialogContent>
