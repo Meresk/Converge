@@ -10,7 +10,7 @@ import {
     IconButton, ToggleButtonGroup, ToggleButton, createTheme, ThemeProvider
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import {fetchOpenRooms, createRoom, joinRoom, fetchRooms} from '../services/rooms/roomsService.ts';
+import {fetchOpenRooms, createRoom, joinRoom, fetchOwnRooms, toggleRoomStatus} from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import { clearToken } from '../services/auth/storage.ts';
 import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
@@ -54,7 +54,7 @@ export default function TeacherPage() {
             setViewMode(newView);
             if (newView === 'table' && allRooms.length === 0) {
                 try {
-                    const data = await fetchRooms();
+                    const data = await fetchOwnRooms();
                     setAllRooms(data);
                 } catch (err) {
                     console.error(err);
@@ -168,6 +168,40 @@ export default function TeacherPage() {
             width: 130,
             renderCell: (params) => (params.value ? 'Да' : 'Нет'),
         },
+        {
+            field: 'toggleStatus',
+            headerName: 'Действие',
+            width: 130,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const isClosed = !!params.row.endAt;
+
+                const handleToggle = async () => {
+                    const roomId = params.row.id; // или другое поле с id
+                    try {
+                        await toggleRoomStatus(roomId); // твой вызов API
+
+                            await loadRooms();
+                            const updatedRooms = await fetchOwnRooms();
+                            setAllRooms(updatedRooms);
+                    } catch (err) {
+                        alert('Не удалось изменить статус комнаты');
+                    }
+                };
+
+                return (
+                    <Button
+                        variant="contained"
+                        color={isClosed ? "success" : "error"}
+                        size="small"
+                        onClick={handleToggle}
+                    >
+                        {isClosed ? "Открыть" : "Закрыть"}
+                    </Button>
+                );
+            }
+        }
     ];
     const theme = createTheme({
         palette: {
@@ -228,13 +262,14 @@ export default function TeacherPage() {
                     borderRadius: '8px',
                     '& .MuiToggleButton-root': {
                         flex: 1,
-                        color: '#ffffff',
+                        color: '#ffffff', // базовый цвет
                         border: 'none',
                         '&:hover': {
                             backgroundColor: '#2ecc7122',
                         },
                         '&.Mui-selected': {
                             backgroundColor: '#2ecc71',
+                            color: '#ffffff', // принудительно белый текст
                             '&:hover': {
                                 backgroundColor: '#27ae60',
                             },
@@ -331,7 +366,7 @@ export default function TeacherPage() {
                 </IconButton>
 
                 <Typography variant="h4" gutterBottom color="white" sx={{ flexShrink: 0 }}>
-                    Список комнат
+                    Список ваших комнат
                 </Typography>
                 {viewMode === 'table' ? (
                     <Box sx={{ flexGrow: 1, height: 0, width: '100%' }}>

@@ -4,7 +4,7 @@ export interface Room {
     ownerID?: number;
     isProtected: boolean;
     startsAt: Date;
-    EndsAt?: Date | null;
+    endsAt?: Date | null;
 }
 
 export interface JoinRoomResponse {

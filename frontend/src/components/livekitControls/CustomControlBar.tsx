@@ -1,15 +1,31 @@
-import { useRoomContext } from "@livekit/components-react";
-import {Mic, MicOff, ExitToApp, StopScreenShare, ScreenShare} from "@mui/icons-material";
+import {
+    useRoomContext,
+} from "@livekit/components-react";
+import {
+    Mic,
+    MicOff,
+    ExitToApp,
+    StopScreenShare,
+    ScreenShare,
+    Chat,
+    Fullscreen,
+    FullscreenExit, SpeakerNotesOff
+} from "@mui/icons-material";
 import { IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
-import {getToken} from "../services/auth/storage.ts";
+import { getToken } from "../../services/auth/storage.ts";
 
-export function CustomControlBar() {
+interface CustomControlBarProps {
+    chatVisible: boolean;
+    setChatVisible: (visible: boolean) => void;
+}
+
+export function CustomControlBar({ chatVisible, setChatVisible }: CustomControlBarProps) {
     const jwtToken = getToken();
-    console.log(jwtToken);
     const room = useRoomContext();
     const [micEnabled, setMicEnabled] = useState(false);
     const [screenEnabled, setScreenEnabled] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
 
     const toggleMic = () => {
         room.localParticipant.setMicrophoneEnabled(!micEnabled);
@@ -23,6 +39,19 @@ export function CustomControlBar() {
 
     const leaveRoom = () => {
         room.disconnect();
+    };
+
+    const toggleFullscreen = () => {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch((err) => {
+                console.error(`Ошибка перехода в полноэкранный режим: ${err.message}`);
+            });
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsFullscreen(false);
+        }
     };
 
     return (
@@ -54,13 +83,24 @@ export function CustomControlBar() {
 
                         <Tooltip title={screenEnabled ? "Остановить демонстрацию экрана" : "Поделиться экраном"}>
                             <IconButton onClick={toggleScreen} color="primary">
-                                {screenEnabled ? <StopScreenShare /> : <ScreenShare />}
+                                {screenEnabled ? <ScreenShare /> :  <StopScreenShare />}
                             </IconButton>
                         </Tooltip>
                     </>
                 )}
 
-                {/* Кнопка выхода всегда видна и тоже входит в flex */}
+                <Tooltip title={chatVisible ? "Скрыть чат" : "Показать чат"}>
+                    <IconButton onClick={() => setChatVisible(!chatVisible)} color="primary">
+                        {chatVisible ? <Chat /> : <SpeakerNotesOff />}
+                    </IconButton>
+                </Tooltip>
+
+                <Tooltip title={isFullscreen ? "Выход из полного экрана" : "Полный экран"}>
+                    <IconButton onClick={toggleFullscreen} color="primary">
+                        {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+                    </IconButton>
+                </Tooltip>
+
                 <Tooltip title="Покинуть комнату">
                     <IconButton onClick={leaveRoom} color="error">
                         <ExitToApp />
@@ -69,5 +109,4 @@ export function CustomControlBar() {
             </div>
         </div>
     );
-
 }

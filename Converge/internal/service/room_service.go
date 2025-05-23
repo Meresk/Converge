@@ -13,9 +13,10 @@ type RoomService interface {
 	Create(name, password string, ownerID int64) (*model.Room, error)
 	GetAll() ([]*model.Room, error)
 	GetById(id int64) (*model.Room, error)
-	CloseRoom(id int64, ownerID int64) error
+	ToggleRoomStatus(id int64, ownerID int64) error
 	JoinRoom(roomID int64, nickname, password string, isAuthorized bool) (string, error)
 	GetAllOpenRooms() ([]*model.Room, error)
+	GetAllByOwnerID(ownerID int64) ([]*model.Room, error)
 }
 
 type roomService struct {
@@ -99,11 +100,15 @@ func (s *roomService) GetAll() ([]*model.Room, error) {
 	return s.roomRepo.FindAll()
 }
 
+func (s *roomService) GetAllByOwnerID(ownerID int64) ([]*model.Room, error) {
+	return s.roomRepo.FindAllByOwnerID(ownerID)
+}
+
 func (s *roomService) GetById(id int64) (*model.Room, error) {
 	return s.roomRepo.GetById(id)
 }
 
-func (s *roomService) CloseRoom(id int64, ownerID int64) error {
+func (s *roomService) ToggleRoomStatus(id int64, ownerID int64) error {
 	room, err := s.roomRepo.GetById(id)
 	if err != nil {
 		return err
@@ -112,7 +117,13 @@ func (s *roomService) CloseRoom(id int64, ownerID int64) error {
 	if room.OwnerID == nil || *room.OwnerID != ownerID {
 		return errors.New("you are not the owner of the room")
 	}
-	now := time.Now()
-	room.EndAt = &now
+
+	if room.EndAt != nil {
+		room.EndAt = nil
+	} else {
+		now := time.Now()
+		room.EndAt = &now
+	}
+
 	return s.roomRepo.Update(room)
 }

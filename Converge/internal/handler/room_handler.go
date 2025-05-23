@@ -22,8 +22,9 @@ func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
 	g := app.Group("/api/rooms")
 	g.Post("/", onlyTeacher, h.Create)
 	g.Get("/", onlyTeacher, h.GetAll)
+	g.Get("/own", onlyTeacher, h.GetAllOwnRooms)
 	g.Get("/open", h.GetAllOpenRooms)
-	g.Post("/:id/close", onlyTeacher, h.CloseRoom)
+	g.Post("/:id/toggle-status", onlyTeacher, h.ToggleRoomStatus)
 	g.Post("/join", h.Join)
 }
 
@@ -80,6 +81,30 @@ func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
+func (h *RoomHandler) GetAllOwnRooms(c *fiber.Ctx) error {
+	ownerID := c.Locals("userID").(int64)
+	rooms, err := h.svc.GetAllByOwnerID(ownerID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "cannot get rooms",
+		})
+	}
+
+	response := make([]fiber.Map, len(rooms))
+	for i, room := range rooms {
+		response[i] = fiber.Map{
+			"id":          room.ID,
+			"name":        room.Name,
+			"ownerID":     room.OwnerID,
+			"isProtected": room.Password != "",
+			"startsAt":    room.StartsAt,
+			"endAt":       room.EndAt,
+		}
+	}
+
+	return c.JSON(response)
+}
+
 func (h *RoomHandler) GetAllOpenRooms(c *fiber.Ctx) error {
 	rooms, err := h.svc.GetAllOpenRooms()
 	if err != nil {
@@ -103,7 +128,7 @@ func (h *RoomHandler) GetAllOpenRooms(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
+func (h *RoomHandler) ToggleRoomStatus(c *fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -111,7 +136,7 @@ func (h *RoomHandler) CloseRoom(c *fiber.Ctx) error {
 		})
 	}
 	ownerID := c.Locals("userID").(int64)
-	if err := h.svc.CloseRoom(id, ownerID); err != nil {
+	if err := h.svc.ToggleRoomStatus(id, ownerID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})

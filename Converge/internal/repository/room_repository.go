@@ -8,6 +8,7 @@ import (
 type RoomRepository interface {
 	Create(room *model.Room) error
 	FindAll() ([]*model.Room, error)
+	FindAllByOwnerID(ownerID int64) ([]*model.Room, error)
 	GetById(id int64) (*model.Room, error)
 	Update(room *model.Room) error
 	FindAllOpen() ([]*model.Room, error)
@@ -19,6 +20,15 @@ type roomRepositoryImpl struct {
 
 func NewRoomRepository(db *gorm.DB) RoomRepository {
 	return &roomRepositoryImpl{db: db}
+}
+
+func (r *roomRepositoryImpl) FindAllByOwnerID(ownerID int64) ([]*model.Room, error) {
+	var rooms []*model.Room
+	err := r.db.Where("owner_id = ?", ownerID).Find(&rooms).Error
+	if err != nil {
+		return nil, err
+	}
+	return rooms, err
 }
 
 func (r *roomRepositoryImpl) FindAllOpen() ([]*model.Room, error) {

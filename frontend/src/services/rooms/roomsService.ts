@@ -14,9 +14,9 @@ export async function fetchOpenRooms(): Promise<Room[]> {
     return res.json();
 }
 
-export async function fetchRooms(): Promise<Room[]> {
+export async function fetchOwnRooms(): Promise<Room[]> {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms`, {
+    const res = await fetch(`${API_BASE}/api/rooms/own`, {
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
     });
     if (!res.ok) {
@@ -55,9 +55,9 @@ export async function joinRoom(params: JoinRoomParams): Promise<string> {
     return data.token;
 }
 
-export async function closeRoom(id: number) {
+export async function toggleRoomStatus(id: number) {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms/${id}/close`, {
+    const res = await fetch(`${API_BASE}/api/rooms/${id}/toggle-status`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
     })

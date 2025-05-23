@@ -5,14 +5,12 @@ import {
     ParticipantTile,
     RoomAudioRenderer,
     useTracks,
-    Chat
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Track } from "livekit-client";
-import {closeRoom} from "../services/rooms/roomsService.ts";
-import {getToken} from "../services/auth/storage.ts";
-import {CustomControlBar} from "../components/CustomControlBar.tsx";
+import {CustomControlBar} from "../components/livekitControls/CustomControlBar.tsx";
+import { CustomChat } from "../components/livekitControls/CustomChat.tsx";
 
 const serverUrl = "ws://localhost:7880";
 type LocationState = { token?: string, selectedRoomId?: number };
@@ -20,35 +18,17 @@ type LocationState = { token?: string, selectedRoomId?: number };
 const RoomPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const jwtToken = getToken();
 
-    // Состояние для управления видимостью чата
-    const [chatVisible, setChatVisible] = useState(true);
+    const state = location.state as LocationState;
+    const token = state?.token;
+
+    // Управление видимостью чата
+    const [chatVisible, setChatVisible] = useState(false);
 
     const handleOnLeave = () => {
         navigate(-1);
     };
 
-    const handleCloseRoom = async () => {
-        const roomId = state.selectedRoomId;
-
-        if (!roomId) {
-            console.warn("roomId не задан");
-            return;
-        }
-
-        try {
-            await closeRoom(roomId);
-            navigate('/teacher');
-        } catch (err: any) {
-            console.error("Ошибка:", err.message || err);
-            alert(err.message || "Не удалось закрыть комнату");
-        }
-    }
-
-    // Получаем токен и имя комнаты из state
-    const state = location.state as LocationState;
-    const token = state?.token;
     return (
         <LiveKitRoom
             video={false}
@@ -60,12 +40,13 @@ const RoomPage: React.FC = () => {
                 height: "100vh",
                 display: "flex",
                 flexDirection: "row",
-                overflow: "hidden", // Предотвращаем прокрутку
+                overflow: "hidden",
+                position: "relative", // чтобы кнопки с absolute работали относительно этого контейнера
             }}
             onDisconnected={handleOnLeave}
         >
-            <MyVideoConference chatVisible={chatVisible}/>
-            <RoomAudioRenderer/>
+            <MyVideoConference chatVisible={chatVisible} />
+            <RoomAudioRenderer />
 
             <div style={{
                 position: "absolute",
@@ -75,72 +56,25 @@ const RoomPage: React.FC = () => {
                 zIndex: 10,
                 backgroundColor: "rgba(0,0,0,0.7)"
             }}>
-                <CustomControlBar />
+                <CustomControlBar
+                    chatVisible={chatVisible}
+                    setChatVisible={setChatVisible}
+                />
             </div>
 
-                {jwtToken && (
-                    <button
-                        onClick={handleCloseRoom}
-                        style={{
-                            position: "absolute",
-                            top: "10px",
-                            left: "10px",
-                            zIndex: 3,
-                            padding: "10px",
-                            backgroundColor: "#e74c3c",
-                            color: "white",
-                            borderRadius: "5px",
-                        }}
-                    >
-                        Закрыть комнату
-                    </button>
-                )}
-
-            {/* Кнопка для скрытия/показа чата */}
-            <button
-                onClick={() => setChatVisible(prev => !prev)}
-                style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "10px",
-                    zIndex: 3,
-                    padding: "10px",
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    color: "white",
-                    borderRadius: "5px",
-                    }}
-                >
-                    {chatVisible ? "Скрыть чат" : "Показать чат"}
-                </button>
-
-                {/* Компонент чата с передачей сообщений */}
-                <Chat
-                    style={{
-                        position: "absolute",
-                        right: "0px",
-                        bottom: "var(--lk-control-bar-height)",
-                        width: chatVisible ? "300px" : "0", // Скрытие чата
-                        height: "calc(100vh - var(--lk-control-bar-height))", // Высота чата
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
-                        borderRadius: "8px",
-                        zIndex: 1,
-                        overflow: "auto", // Добавление прокрутки для чата
-                        transition: "width 0.3s ease-in-out", // Плавное изменение ширины
-                    }}
-                />
+            {/* Чат */}
+            <CustomChat visible={chatVisible} />
         </LiveKitRoom>
-);
+    );
 };
 
 interface MyVideoConferenceProps {
     chatVisible: boolean;
 }
 
-function MyVideoConference({chatVisible}: MyVideoConferenceProps) {
+function MyVideoConference({ chatVisible }: MyVideoConferenceProps) {
     const tracks = useTracks(
-        [
-            {source: Track.Source.ScreenShare, withPlaceholder: false },
-        ],
+        [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
         { onlySubscribed: false }
     );
 
@@ -149,9 +83,9 @@ function MyVideoConference({chatVisible}: MyVideoConferenceProps) {
             tracks={tracks}
             style={{
                 height: "calc(100vh - var(--lk-control-bar-height))",
-                width: chatVisible ? "calc(100vw - 300px)" : "100vw", // Регулируем ширину при скрытии чата
-                marginRight: chatVisible ? "300px" : "0", // Отступ для чата
-                transition: "width 0.3s ease-in-out", // Плавное изменение ширины
+                width: chatVisible ? "calc(100vw - 300px)" : "100vw",
+                marginRight: chatVisible ? "300px" : "0",
+                transition: "width 0.3s ease-in-out",
             }}
         >
             <ParticipantTile />
