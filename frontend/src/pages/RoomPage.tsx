@@ -48,7 +48,7 @@ const RoomPage: React.FC = () => {
         >
             <MyVideoConference chatVisible={chatVisible} />
             <RoomAudioRenderer />
-            <ParticipantList />
+            <ParticipantList visible={true} />
 
             <div style={{
                 position: "absolute",

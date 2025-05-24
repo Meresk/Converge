@@ -13,6 +13,8 @@ import { fetchOpenRooms, joinRoom } from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
 import RoomCard from "../components/RoomCard.tsx";
+import {customProfanityWords} from "../types/customProfanityWords.ts";
+
 
 export default function StudentPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -51,6 +53,12 @@ export default function StudentPage() {
         const trimmedName = joinName.trim();
         if (!trimmedName) {
             setJoinError('Имя не может быть пустым');
+            return;
+        }
+        const trimmedLowerName = trimmedName.toLowerCase();
+
+        if ( customProfanityWords.some(word => trimmedLowerName.includes(word))) {
+            setJoinError('Поажлуйста, введите корректное имя без нецензурных слов');
             return;
         }
 

@@ -1,28 +1,66 @@
-import {useParticipants} from "@livekit/components-react";
+// components/ParticipantList.tsx
+import React from "react";
+import { useParticipants } from "@livekit/components-react";
 
-export function ParticipantList() {
+interface ParticipantListProps {
+    visible: boolean;
+}
+
+export const ParticipantList: React.FC<ParticipantListProps> = ({ visible }) => {
     const participants = useParticipants();
 
+    if (!visible) return null;
+
     return (
-        <div style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            zIndex: 20,
-            backgroundColor: "rgba(0,0,0,0.7)",
-            color: "white",
-            padding: "10px",
-            borderRadius: "8px",
-            maxHeight: "50vh",
-            overflowY: "auto",
-            fontSize: "14px"
-        }}>
-            <div style={{ fontWeight: "bold", marginBottom: "6px" }}>Участники:</div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {participants.map((p) => (
-                    <li key={p.sid}>{p.identity}</li>
-                ))}
-            </ul>
+        <div
+            style={{
+                position: "absolute",
+                right: "0px",
+                top: "8px",
+                bottom: "calc(var(--lk-control-bar-height) + 8px)",
+                width: "300px",
+                backgroundColor: "#1e1e1e",
+                color: "#f1f1f1",
+                display: "flex",
+                flexDirection: "column",
+                zIndex: 5,
+                borderRadius: "12px",
+                boxShadow: "0 0 15px rgba(0,0,0,0.5)",
+                overflow: "hidden",
+            }}
+        >
+            <div
+                style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    padding: "10px",
+                }}
+            >
+                {participants.length === 0 ? (
+                    <div style={{ fontStyle: "italic", color: "#999" }}>
+                        Участников нет
+                    </div>
+                ) : (
+                    participants.map((participant) => (
+                        <div
+                            key={participant.sid}
+                            style={{
+                                marginBottom: "8px",
+                                padding: "6px 8px",
+                                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                borderRadius: "6px",
+                                wordBreak: "break-word",
+                                maxWidth: "100%",
+                                overflowWrap: "break-word",
+                                fontSize: "0.9rem",
+                                lineHeight: "1.4",
+                            }}
+                        >
+                            {participant.identity}
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
-}
+};

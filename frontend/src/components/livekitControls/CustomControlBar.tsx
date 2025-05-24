@@ -13,7 +13,7 @@ import {
 } from "@mui/icons-material";
 import { IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
-import { getToken } from "../../services/auth/storage.ts";
+import {getToken, isTokenValid} from "../../services/auth/storage.ts";
 
 interface CustomControlBarProps {
     chatVisible: boolean;
@@ -22,6 +22,7 @@ interface CustomControlBarProps {
 
 export function CustomControlBar({ chatVisible, setChatVisible }: CustomControlBarProps) {
     const jwtToken = getToken();
+    const validToken = isTokenValid()
     const room = useRoomContext();
     const [micEnabled, setMicEnabled] = useState(false);
     const [screenEnabled, setScreenEnabled] = useState(false);
@@ -73,7 +74,7 @@ export function CustomControlBar({ chatVisible, setChatVisible }: CustomControlB
                     alignItems: 'center',
                 }}
             >
-                {jwtToken && (
+                {jwtToken && validToken &&  (
                     <>
                         <Tooltip title={micEnabled ? "Выключить микрофон" : "Включить микрофон"}>
                             <IconButton onClick={toggleMic} color="primary">
