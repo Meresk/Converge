@@ -72,7 +72,7 @@ export async function toggleRoomStatus(id: number) {
     }
 }
 
-export async function UpdateRoom(id: number, data: {name?: string, password?: string}): Promise<Room> {
+export async function updateRoom(id: number, data: { name?: string; password?: string}): Promise<Room> {
     const token = getToken();
     const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
         method: 'PUT',
@@ -84,4 +84,16 @@ export async function UpdateRoom(id: number, data: {name?: string, password?: st
         throw new Error(err.message);
     }
     return res.json();
+}
+
+export async function deleteRoom(id: number): Promise<void> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message);
+    }
 }

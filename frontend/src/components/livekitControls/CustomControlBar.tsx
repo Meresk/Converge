@@ -9,24 +9,29 @@ import {
     ScreenShare,
     Chat,
     Fullscreen,
-    FullscreenExit, SpeakerNotesOff
+    FullscreenExit, SpeakerNotesOff,
+    Group, GroupOff
 } from "@mui/icons-material";
 import { IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
 import {getToken, isTokenValid} from "../../services/auth/storage.ts";
 
 interface CustomControlBarProps {
-    chatVisible: boolean;
-    setChatVisible: (visible: boolean) => void;
+    activePanel: 'chat' | 'participants' | null;
+    setActivePanel: (panel: 'chat' | 'participants' | null) => void;
 }
 
-export function CustomControlBar({ chatVisible, setChatVisible }: CustomControlBarProps) {
+export function CustomControlBar({ activePanel, setActivePanel }: CustomControlBarProps) {
     const jwtToken = getToken();
     const validToken = isTokenValid()
     const room = useRoomContext();
     const [micEnabled, setMicEnabled] = useState(false);
     const [screenEnabled, setScreenEnabled] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
+
+    const togglePanel = (panel: 'chat' | 'participants') => {
+        setActivePanel(activePanel === panel ? null : panel);
+    };
 
     const toggleMic = () => {
         room.localParticipant.setMicrophoneEnabled(!micEnabled);
@@ -90,9 +95,15 @@ export function CustomControlBar({ chatVisible, setChatVisible }: CustomControlB
                     </>
                 )}
 
-                <Tooltip title={chatVisible ? "Скрыть чат" : "Показать чат"}>
-                    <IconButton onClick={() => setChatVisible(!chatVisible)} color="primary">
-                        {chatVisible ? <Chat /> : <SpeakerNotesOff />}
+                <Tooltip title={activePanel === 'chat' ? "Скрыть чат" : "Показать чат"}>
+                    <IconButton onClick={() => togglePanel('chat')} color="primary">
+                        {activePanel === 'chat' ? <Chat /> : <SpeakerNotesOff />}
+                    </IconButton>
+                </Tooltip>
+
+                <Tooltip title={activePanel === 'participants' ? "Скрыть участников" : "Показать участников"}>
+                    <IconButton onClick={() => togglePanel('participants')} color="primary">
+                        {activePanel === 'participants' ? <Group /> : <GroupOff />}
                     </IconButton>
                 </Tooltip>
 

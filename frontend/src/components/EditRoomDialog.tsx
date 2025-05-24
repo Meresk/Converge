@@ -1,21 +1,19 @@
-// components/CreateRoomModal.tsx
-import {AutoAwesome, Visibility, VisibilityOff} from '@mui/icons-material';
+// components/EditRoomModal.tsx
+import { AutoAwesome, Visibility, VisibilityOff } from '@mui/icons-material';
 import { Box, Button, Typography, Modal, Fade, TextField } from '@mui/material';
 import { IconButton, InputAdornment } from '@mui/material';
 import { useState } from 'react';
 
-interface CreateRoomModalProps {
+interface EditRoomModalProps {
     open: boolean;
     onClose: () => void;
-    onCreate: () => void;
-    newName: string;
-    setNewName: (value: string) => void;
-    newPassword: string;
-    setNewPassword: (value: string) => void;
+    onUpdate: () => void;
+    updatedName: string;
+    setUpdatedName: (value: string) => void;
+    updatedPassword: string;
+    setUpdatedPassword: (value: string) => void;
     nameError: boolean;
     setNameError: (value: boolean) => void;
-    duplicateNameError: boolean;
-    setDuplicateNameError: (value: boolean) => void;
 }
 
 function generateRandomPassword(length = 6) {
@@ -23,22 +21,19 @@ function generateRandomPassword(length = 6) {
     return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-export default function CreateRoomModal({
-                                            open,
-                                            onClose,
-                                            onCreate,
-                                            newName,
-                                            setNewName,
-                                            newPassword,
-                                            setNewPassword,
-                                            nameError,
-                                            setNameError,
-                                            duplicateNameError,
-                                            setDuplicateNameError,
-                                        }: CreateRoomModalProps) {
+export default function EditRoomModal({
+                                          open,
+                                          onClose,
+                                          onUpdate,
+                                          updatedName,
+                                          setUpdatedName,
+                                          updatedPassword,
+                                          setUpdatedPassword,
+                                          nameError,
+                                          setNameError,
+                                      }: EditRoomModalProps) {
 
     const [showPassword, setShowPassword] = useState(false);
-
 
     return (
         <Modal open={open} onClose={onClose} closeAfterTransition>
@@ -61,48 +56,39 @@ export default function CreateRoomModal({
                     }}
                 >
                     <Typography variant="h6" mb={3} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        🎓 Создание новой комнаты
+                        ✏️ Редактирование комнаты
                     </Typography>
 
                     <TextField
                         fullWidth
                         label="Название*"
                         variant="outlined"
-                        value={newName}
+                        value={updatedName}
                         onChange={(e) => {
-                            setNewName(e.target.value);
+                            setUpdatedName(e.target.value);
                             if (nameError && e.target.value.trim()) {
                                 setNameError(false);
                             }
-                            if (duplicateNameError) {
-                                setDuplicateNameError(false);
-                            }
                         }}
                         margin="normal"
-                        error={nameError || duplicateNameError}
-                        helperText={
-                            nameError
-                                ? 'Название не может быть пустым'
-                                : duplicateNameError
-                                    ? 'Комната с таким названием уже существует'
-                                    : ''
-                        }
+                        error={nameError}
+                        helperText={nameError ? 'Название не может быть пустым' : ''}
                         InputLabelProps={{
                             sx: {
-                                color: nameError || duplicateNameError ? 'error.main' : '#bbb',
+                                color: nameError ? 'error.main' : '#bbb',
                             },
                         }}
                         InputProps={{
                             sx: {
                                 color: 'white',
                                 '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: nameError || duplicateNameError ? 'error.main' : '#555',
+                                    borderColor: nameError ? 'error.main' : '#555',
                                 },
                                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: nameError || duplicateNameError ? 'error.main' : '#888',
+                                    borderColor: nameError ? 'error.main' : '#888',
                                 },
                                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: nameError || duplicateNameError ? 'error.main' : 'primary.main',
+                                    borderColor: nameError ? 'error.main' : 'primary.main',
                                 },
                             },
                         }}
@@ -110,15 +96,13 @@ export default function CreateRoomModal({
 
                     <TextField
                         fullWidth
-                        label="Пароль (необязательно)"
+                        label="Новый пароль (если нужно)"
                         variant="outlined"
                         type={showPassword ? 'text' : 'password'}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
+                        value={updatedPassword}
+                        onChange={(e) => setUpdatedPassword(e.target.value)}
                         margin="normal"
-                        InputLabelProps={{
-                            sx: { color: '#bbb' },
-                        }}
+                        InputLabelProps={{ sx: { color: '#bbb' } }}
                         InputProps={{
                             sx: {
                                 color: 'white',
@@ -135,7 +119,7 @@ export default function CreateRoomModal({
                             endAdornment: (
                                 <InputAdornment position="end">
                                     <IconButton
-                                        onClick={() => setNewPassword(generateRandomPassword())}
+                                        onClick={() => setUpdatedPassword(generateRandomPassword())}
                                         edge="end"
                                         sx={{ color: '#bbb' }}
                                         title="Сгенерировать пароль"
@@ -147,7 +131,7 @@ export default function CreateRoomModal({
                                         edge="end"
                                         sx={{ color: '#bbb' }}
                                     >
-                                        {showPassword ? <Visibility /> : <VisibilityOff /> }
+                                        {showPassword ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
                                 </InputAdornment>
                             ),
@@ -172,14 +156,14 @@ export default function CreateRoomModal({
                         </Button>
                         <Button
                             variant="contained"
-                            onClick={onCreate}
+                            onClick={onUpdate}
                             color="primary"
                             sx={{
                                 fontWeight: 'bold',
                                 boxShadow: '0 2px 8px rgba(33,150,243,0.4)',
                             }}
                         >
-                            Создать
+                            Сохранить
                         </Button>
                     </Box>
                 </Box>

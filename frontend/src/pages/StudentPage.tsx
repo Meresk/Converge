@@ -147,6 +147,7 @@ export default function StudentPage() {
                             <RoomCard
                                 name={room.name}
                                 isProtected={room.isProtected}
+                                ownerFullName={`${room.ownerSurname} ${room.ownerName} ${room.ownerPatronymic}`}
                                 onClick={() => handleJoinClick(room.id, room.isProtected)}
                             />
                         </Grid>

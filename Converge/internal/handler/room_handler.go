@@ -52,12 +52,15 @@ func (h *RoomHandler) Create(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"id":          room.ID,
-		"name":        room.Name,
-		"ownerID":     room.OwnerID,
-		"isProtected": room.Password != "",
-		"startsAt":    room.StartsAt,
-		"endAt":       room.EndAt,
+		"id":              room.ID,
+		"name":            room.Name,
+		"ownerID":         room.OwnerID,
+		"ownerName":       room.Owner.Name,
+		"ownerSurname":    room.Owner.Surname,
+		"ownerPatronymic": room.Owner.Patronymic,
+		"isProtected":     room.Password != "",
+		"startsAt":        room.StartsAt,
+		"endAt":           room.EndAt,
 	})
 }
 
@@ -86,12 +89,15 @@ func (h *RoomHandler) Update(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"id":          updated.ID,
-		"name":        updated.Name,
-		"ownerID":     updated.OwnerID,
-		"isProtected": updated.Password != "",
-		"startsAt":    updated.StartsAt,
-		"endAt":       updated.EndAt,
+		"id":              updated.ID,
+		"name":            updated.Name,
+		"ownerID":         updated.OwnerID,
+		"ownerName":       updated.Owner.Name,
+		"ownerSurname":    updated.Owner.Surname,
+		"ownerPatronymic": updated.Owner.Patronymic,
+		"isProtected":     updated.Password != "",
+		"startsAt":        updated.StartsAt,
+		"endAt":           updated.EndAt,
 	})
 }
 
@@ -106,12 +112,15 @@ func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
 	response := make([]fiber.Map, len(rooms))
 	for i, room := range rooms {
 		response[i] = fiber.Map{
-			"id":          room.ID,
-			"name":        room.Name,
-			"ownerID":     room.OwnerID,
-			"isProtected": room.Password != "",
-			"startsAt":    room.StartsAt,
-			"endAt":       room.EndAt,
+			"id":              room.ID,
+			"name":            room.Name,
+			"ownerID":         room.OwnerID,
+			"ownerName":       room.Owner.Name,
+			"ownerSurname":    room.Owner.Surname,
+			"ownerPatronymic": room.Owner.Patronymic,
+			"isProtected":     room.Password != "",
+			"startsAt":        room.StartsAt,
+			"endAt":           room.EndAt,
 		}
 	}
 
@@ -132,12 +141,15 @@ func (h *RoomHandler) GetAllOwnRooms(c *fiber.Ctx) error {
 	response := make([]fiber.Map, len(rooms))
 	for i, room := range rooms {
 		response[i] = fiber.Map{
-			"id":          room.ID,
-			"name":        room.Name,
-			"ownerID":     room.OwnerID,
-			"isProtected": room.Password != "",
-			"startsAt":    room.StartsAt,
-			"endAt":       room.EndAt,
+			"id":              room.ID,
+			"name":            room.Name,
+			"ownerID":         room.OwnerID,
+			"ownerName":       room.Owner.Name,
+			"ownerSurname":    room.Owner.Surname,
+			"ownerPatronymic": room.Owner.Patronymic,
+			"isProtected":     room.Password != "",
+			"startsAt":        room.StartsAt,
+			"endAt":           room.EndAt,
 		}
 	}
 
@@ -155,12 +167,15 @@ func (h *RoomHandler) GetAllOpenRooms(c *fiber.Ctx) error {
 	response := make([]fiber.Map, len(rooms))
 	for i, room := range rooms {
 		response[i] = fiber.Map{
-			"id":          room.ID,
-			"name":        room.Name,
-			"ownerID":     room.OwnerID,
-			"isProtected": room.Password != "",
-			"startsAt":    room.StartsAt,
-			"endAt":       room.EndAt,
+			"id":              room.ID,
+			"name":            room.Name,
+			"ownerID":         room.OwnerID,
+			"ownerName":       room.Owner.Name,
+			"ownerSurname":    room.Owner.Surname,
+			"ownerPatronymic": room.Owner.Patronymic,
+			"isProtected":     room.Password != "",
+			"startsAt":        room.StartsAt,
+			"endAt":           room.EndAt,
 		}
 	}
 

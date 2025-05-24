@@ -13,7 +13,7 @@ import {CustomControlBar} from "../components/livekitControls/CustomControlBar.t
 import { CustomChat } from "../components/livekitControls/CustomChat.tsx";
 import {ParticipantList} from "../components/livekitControls/ParticipantList.tsx";
 
-const serverUrl = "ws://localhost:7880";
+const serverUrl = import.meta.env.VITE_SERVER_URL;
 type LocationState = { token?: string, selectedRoomId?: number };
 
 const RoomPage: React.FC = () => {
@@ -24,7 +24,8 @@ const RoomPage: React.FC = () => {
     const token = state?.token;
 
     // Управление видимостью чата
-    const [chatVisible, setChatVisible] = useState(false);
+    type ActivePanel = 'chat' | 'participants' | null;
+    const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 
     const handleOnLeave = () => {
         navigate(-1);
@@ -46,9 +47,8 @@ const RoomPage: React.FC = () => {
             }}
             onDisconnected={handleOnLeave}
         >
-            <MyVideoConference chatVisible={chatVisible} />
+            <MyVideoConference panelVisible={activePanel} />
             <RoomAudioRenderer />
-            <ParticipantList visible={true} />
 
             <div style={{
                 position: "absolute",
@@ -59,22 +59,24 @@ const RoomPage: React.FC = () => {
                 backgroundColor: "rgba(0,0,0,0.7)"
             }}>
                 <CustomControlBar
-                    chatVisible={chatVisible}
-                    setChatVisible={setChatVisible}
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
                 />
             </div>
 
             {/* Чат */}
-            <CustomChat visible={chatVisible} />
+            <CustomChat visible={activePanel === 'chat'} />
+
+            <ParticipantList visible={activePanel === 'participants'} />
         </LiveKitRoom>
     );
 };
 
 interface MyVideoConferenceProps {
-    chatVisible: boolean;
+    panelVisible: string | null;
 }
 
-function MyVideoConference({ chatVisible }: MyVideoConferenceProps) {
+function MyVideoConference({ panelVisible }: MyVideoConferenceProps) {
     const tracks = useTracks(
         [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
         { onlySubscribed: false }
@@ -85,8 +87,8 @@ function MyVideoConference({ chatVisible }: MyVideoConferenceProps) {
             tracks={tracks}
             style={{
                 height: "calc(100vh - var(--lk-control-bar-height))",
-                width: chatVisible ? "calc(100vw - 300px)" : "100vw",
-                marginRight: chatVisible ? "300px" : "0",
+                width: panelVisible != null ? "calc(100vw - 300px)" : "100vw",
+                marginRight: panelVisible != null ? "300px" : "0",
                 transition: "width 0.3s ease-in-out",
             }}
         >

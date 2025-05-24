@@ -6,6 +6,19 @@ import {createTheme, ThemeProvider} from "@mui/material";
 
 const theme = createTheme({
     components: {
+        MuiButtonBase: {
+            styleOverrides: {
+                root: {
+                    '&:focus': {
+                        outline: 'none',
+                    },
+                    '&:focus-visible': {
+                        outline: 'none',
+                        boxShadow: 'none',
+                    },
+                },
+            },
+        },
         MuiIconButton: {
             styleOverrides: {
                 root: {

@@ -73,7 +73,14 @@ export default function AdminPage() {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
-    const initialFormState: CreateUserParams = { login: '', password: '', roleID: 2 };
+    const initialFormState: CreateUserParams = {
+        login: '',
+        password: '',
+        roleID: 2,
+        name: '',
+        surname: '',
+        patronymic: ''
+    };
     const [formData, setFormData] = useState<CreateUserParams>(initialFormState);
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 });
@@ -107,7 +114,14 @@ export default function AdminPage() {
 
     const handleEdit = (user: User) => {
         setEditingUser(user);
-        setFormData({ login: user.login, password: '', roleID: user.role.id });
+        setFormData({
+            login: user.login,
+            password: '',
+            roleID: user.role.id,
+            name: user.name,
+            surname: user.surname,
+            patronymic: user.patronymic
+        });
         setDialogOpen(true);
     };
 
@@ -120,7 +134,14 @@ export default function AdminPage() {
     const handleSave = async () => {
         try {
             if (editingUser) {
-                const updated = await updateUser(editingUser.id, formData);
+                const updated = await updateUser(editingUser.id, {
+                    login: formData.login,
+                    password: formData.password,
+                    roleId: formData.roleID,
+                    name: formData.name,
+                    surname: formData.surname,
+                    patronymic: formData.patronymic
+                });
                 setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
                 setSuccessMessage('Пользователь обновлён');
             } else {
@@ -165,6 +186,17 @@ export default function AdminPage() {
                     : roleName === 'teacher'
                         ? 'Преподаватель'
                         : roleName ?? '';
+            }
+        },
+        {
+            field: 'fio',
+            headerName: 'ФИО',
+            flex: 2,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const { surname, name, patronymic } = params.row;
+                return `${surname} ${name} ${patronymic}`;
             }
         },
         {
@@ -235,6 +267,21 @@ export default function AdminPage() {
                         <TextField
                             fullWidth label="Пароль" type="password" value={formData.password}
                             onChange={e => setFormData({ ...formData, password: e.target.value })}
+                            margin="normal"
+                        />
+                        <TextField
+                            fullWidth label="Имя" value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            margin="normal"
+                        />
+                        <TextField
+                            fullWidth label="Фамилия" value={formData.surname}
+                            onChange={e => setFormData({ ...formData, surname: e.target.value })}
+                            margin="normal"
+                        />
+                        <TextField
+                            fullWidth label="Отчество" value={formData.patronymic}
+                            onChange={e => setFormData({ ...formData, patronymic: e.target.value })}
                             margin="normal"
                         />
                         <FormControl fullWidth margin="normal">

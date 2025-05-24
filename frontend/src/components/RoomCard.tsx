@@ -5,10 +5,11 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 interface RoomCardProps {
     name: string;
     isProtected: boolean;
+    ownerFullName?: string;  // новый необязательный проп
     onClick: () => void;
 }
 
-export default function RoomCard({ name, isProtected, onClick }: RoomCardProps) {
+export default function RoomCard({ name, isProtected, ownerFullName, onClick }: RoomCardProps) {
     return (
         <Card
             onClick={onClick}
@@ -39,7 +40,7 @@ export default function RoomCard({ name, isProtected, onClick }: RoomCardProps) 
                     component="div"
                     sx={{
                         fontWeight: 'bold',
-                        mb: 1.5,
+                        mb: ownerFullName ? 0.5 : 1.5,  // меньше отступ, если есть имя
                         letterSpacing: 1,
                         textTransform: 'uppercase',
                         userSelect: 'none',
@@ -49,6 +50,23 @@ export default function RoomCard({ name, isProtected, onClick }: RoomCardProps) 
                 >
                     {name}
                 </Typography>
+
+                {ownerFullName && (
+                    <Typography
+                        variant="subtitle2"
+                        component="div"
+                        sx={{
+                            color: '#aaa',
+                            fontWeight: 400,
+                            mb: 1.5,
+                            textAlign: 'center',
+                            userSelect: 'none',
+                        }}
+                    >
+                        {ownerFullName}
+                    </Typography>
+                )}
+
                 <Box
                     sx={{
                         display: 'flex',

@@ -7,10 +7,18 @@ import {
     Divider,
     Grid,
     Drawer,
-    IconButton, ToggleButtonGroup, ToggleButton, createTheme, ThemeProvider
+    IconButton, ToggleButtonGroup, ToggleButton, createTheme, ThemeProvider, Stack,
+     Snackbar, Alert
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import {createRoom, joinRoom, fetchOwnRooms, toggleRoomStatus} from '../services/rooms/roomsService.ts';
+import {
+    createRoom,
+    joinRoom,
+    fetchOwnRooms,
+    toggleRoomStatus,
+    updateRoom,
+    deleteRoom
+} from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import { clearToken } from '../services/auth/storage.ts';
 import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
@@ -20,6 +28,9 @@ import {DataGrid, type GridColDef} from "@mui/x-data-grid";
 import { ruRU } from '@mui/x-data-grid/locales';
 import {format, parseISO} from "date-fns";
 import {ru} from "date-fns/locale";
+import {Delete, Edit, Visibility, VisibilityOff} from '@mui/icons-material';
+import EditRoomModal from "../components/EditRoomDialog.tsx";
+import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog.tsx";
 
 const drawerWidth = 250;
 
@@ -42,6 +53,10 @@ export default function TeacherPage() {
 
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
     const [allRooms, setAllRooms] = useState<Room[]>([]);
+
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [updatedName, setUpdatedName] = useState('');
+    const [updatedPassword, setUpdatedPassword] = useState('');
 
     useEffect(() => {
         loadRooms();
@@ -134,6 +149,58 @@ export default function TeacherPage() {
         navigate('/');
     };
 
+    const handleEditClick = (room: Room) => {
+        setSelectedRoomId(room.id);
+        setUpdatedName(room.name);
+        setUpdatedPassword('');
+        setEditModalOpen(true);
+    };
+
+    const handleUpdateRoom = async () => {
+        if (!updatedName.trim()) {
+            setNameError(true);
+            return;
+        }
+
+        if (!selectedRoomId) return;
+
+        try {
+            await updateRoom(selectedRoomId, {name: updatedName, password: updatedPassword || undefined});
+            setEditModalOpen(false);
+            // обнови список комнат
+            await loadRooms(); // если такая функция есть
+        } catch (error) {
+            console.error('Ошибка при обновлении комнаты:', error);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (confirmDeleteId == null) return;
+        try {
+            await deleteRoom(confirmDeleteId);
+            await loadRooms();
+            const updatedRooms = await fetchOwnRooms(false);
+            setAllRooms(updatedRooms);
+            setSnackbar({ message: 'Комната удалена', severity: 'success', open: true });
+        } catch {
+            setSnackbar({ message: 'Ошибка удаления комнаты', severity: 'error', open: true });
+        } finally {
+            setConfirmDeleteId(null);
+        }
+    };
+
+    const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error'; open: boolean }>({
+        message: '',
+        severity: 'success',
+        open: false,
+    });
+
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+    const handleSnackbarClose = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
     const columns: GridColDef[] = [
         {
             field: 'index',
@@ -147,11 +214,17 @@ export default function TeacherPage() {
                 return index + 1;
             }
         },
-        { field: 'name', headerName: 'Название', flex: 1 },
+        { field: 'name', headerName: 'Название', flex: 1, width: 900, },
+        {
+            field: 'isProtected',
+            headerName: 'Пароль',
+            width: 130,
+            renderCell: (params) => (params.value ? 'Да' : 'Нет'),
+        },
         {
             field: 'startsAt',
-            headerName: 'Открыта',
-            flex: 1,
+            headerName: 'Дата создания',
+            minWidth: 200,
             renderCell: (params) => {
                 if (!params.value) return '';
                 const date = parseISO(params.value);
@@ -160,8 +233,8 @@ export default function TeacherPage() {
         },
         {
             field: 'endAt',
-            headerName: 'Закрыта',
-            flex: 1,
+            headerName: 'Дата сокрытия',
+            minWidth: 200,
             renderCell: (params) => {
                 if (!params.value) return '';
                 const date = parseISO(params.value);
@@ -169,17 +242,13 @@ export default function TeacherPage() {
             }
         },
         {
-            field: 'isProtected',
-            headerName: 'Защищена?',
-            width: 130,
-            renderCell: (params) => (params.value ? 'Да' : 'Нет'),
-        },
-        {
             field: 'toggleStatus',
-            headerName: 'Действие',
-            width: 130,
+            headerName: 'Действия',
+            width: 240,
             sortable: false,
             filterable: false,
+            headerAlign: 'center',
+            align: 'center',
             renderCell: (params) => {
                 const isClosed = !!params.row.endAt;
 
@@ -196,15 +265,75 @@ export default function TeacherPage() {
                     }
                 };
 
+                const handleEdit = () => {
+                    handleEditClick(params.row);
+                };
+
+                const handleDeleteClick = () => {
+                    setConfirmDeleteId(params.row.id); // вот он!
+                };
+
                 return (
-                    <Button
-                        variant="contained"
-                        color={isClosed ? "success" : "error"}
-                        size="small"
-                        onClick={handleToggle}
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{
+                            height: '100%',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
                     >
-                        {isClosed ? "Открыть" : "Закрыть"}
-                    </Button>
+                        <Button
+                            color={isClosed ? "success" : "error"}
+                            size="medium"
+                            onClick={handleToggle}
+                            sx={{
+                                minWidth: 44,
+                                padding: '6px',
+                                borderRadius: '8px',
+                                '& .MuiSvgIcon-root': { fontSize: 24 },
+                                '&:hover': {
+                                    backgroundColor: isClosed ? 'rgba(46, 204, 113, 0.3)' : 'rgba(244, 67, 54, 0.3)',
+                                }
+                            }}
+                        >
+                            {isClosed ? <Visibility /> : <VisibilityOff />}
+                        </Button>
+
+                        <Button
+                            color="primary"
+                            size="medium"
+                            onClick={handleEdit}
+                            sx={{
+                                minWidth: 44,
+                                padding: '6px',
+                                borderRadius: '8px',
+                                '& .MuiSvgIcon-root': { fontSize: 24 },
+                                '&:hover': {
+                                    backgroundColor: 'rgba(25, 118, 210, 0.3)',
+                                }
+                            }}
+                        >
+                            <Edit />
+                        </Button>
+
+                        <Button
+                            color="error"
+                            size="medium"
+                            onClick={handleDeleteClick}
+                            sx={{
+                                minWidth: 44,
+                                padding: '6px',
+                                borderRadius: '8px',
+                                '& .MuiSvgIcon-root': { fontSize: 24 },
+                                '&:hover': {
+                                    backgroundColor: 'rgba(244, 67, 54, 0.3)',
+                                }
+                            }}
+                        >
+                            <Delete />
+                        </Button>
+                    </Stack>
                 );
             }
         }
@@ -476,6 +605,45 @@ export default function TeacherPage() {
                 setJoinPassword={setJoinPassword}
                 setJoinError={setJoinError}
             />
+            <EditRoomModal
+                open={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                onUpdate={handleUpdateRoom}
+                updatedName={updatedName}
+                setUpdatedName={setUpdatedName}
+                updatedPassword={updatedPassword}
+                setUpdatedPassword={setUpdatedPassword}
+                nameError={nameError}
+                setNameError={setNameError}
+            />
+            <ConfirmDeleteDialog
+                open={confirmDeleteId !== null}
+                onClose={() => setConfirmDeleteId(null)}
+                onConfirm={handleDelete}
+                content="Вы действительно хотите удалить эту комнату? Это действие необратимо."
+            />
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbar.severity}
+                    sx={{
+                        width: '100%',
+                        bgcolor: 'rgba(50, 50, 50, 0.9)',  // тёмный фон с прозрачностью
+                        color: 'white',                    // белый текст
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.7)',  // тень для глубины
+                        '& .MuiAlert-icon': {
+                            color: snackbar.severity === 'error' ? '#f44336' : '#4caf50', // красный или зелёный для иконок
+                        },
+                    }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

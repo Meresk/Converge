@@ -1,7 +1,7 @@
 // components/CustomChat.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useRoomContext } from "@livekit/components-react";
-import {getToken} from "../../services/auth/storage.ts";
+import {getToken, isTokenValid} from "../../services/auth/storage.ts";
 import SendIcon from '@mui/icons-material/Send';
 
 interface ChatMessage {
@@ -20,6 +20,7 @@ export const CustomChat: React.FC<CustomChatProps> = ({ visible }) => {
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const jwtToken = getToken();
+    const validToken = isTokenValid()
 
     useEffect(() => {
         const handleDataReceived = (payload: Uint8Array, participant: any) => {
@@ -124,7 +125,7 @@ export const CustomChat: React.FC<CustomChatProps> = ({ visible }) => {
                 ))}
                 <div ref={messagesEndRef} />
             </div>
-            {jwtToken && (
+            {jwtToken && validToken && (
                 <div
                     style={{
                         display: "flex",

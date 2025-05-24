@@ -1,6 +1,6 @@
-// components/ParticipantList.tsx
 import React from "react";
 import { useParticipants } from "@livekit/components-react";
+import { Person } from "@mui/icons-material"; // MUI иконка пользователя
 
 interface ParticipantListProps {
     visible: boolean;
@@ -45,18 +45,18 @@ export const ParticipantList: React.FC<ParticipantListProps> = ({ visible }) => 
                         <div
                             key={participant.sid}
                             style={{
-                                marginBottom: "8px",
-                                padding: "6px 8px",
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                borderRadius: "6px",
-                                wordBreak: "break-word",
-                                maxWidth: "100%",
-                                overflowWrap: "break-word",
-                                fontSize: "0.9rem",
-                                lineHeight: "1.4",
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "10px",
+                                borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                                fontSize: "0.95rem",
+                                gap: "10px",
                             }}
                         >
-                            {participant.identity}
+                            <Person style={{ color: "#2ecc71" }} />
+                            <span style={{ wordBreak: "break-word", flex: 1 }}>
+                                {participant.identity}
+                            </span>
                         </div>
                     ))
                 )}
