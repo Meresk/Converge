@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"Converge/internal/dto"
 	"Converge/internal/service"
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -18,14 +19,16 @@ func NewRoomHandler(svc service.RoomService, jwtSecret string) *RoomHandler {
 	return &RoomHandler{svc: svc, jwtSecret: jwtSecret}
 }
 
-func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
+func (h *RoomHandler) Register(app *fiber.App, onlyTeacher fiber.Handler, onlyAdmin fiber.Handler) {
 	g := app.Group("/api/rooms")
 	g.Post("/", onlyTeacher, h.Create)
-	g.Get("/", onlyTeacher, h.GetAll)
+	g.Get("/", onlyAdmin, h.GetAll)
 	g.Get("/own", onlyTeacher, h.GetAllOwnRooms)
 	g.Get("/open", h.GetAllOpenRooms)
 	g.Post("/:id/toggle-status", onlyTeacher, h.ToggleRoomStatus)
 	g.Post("/join", h.Join)
+	g.Put("/:id", onlyTeacher, h.Update)
+	g.Delete("/:id", onlyTeacher, h.Delete)
 }
 
 func (h *RoomHandler) Create(c *fiber.Ctx) error {
@@ -44,7 +47,7 @@ func (h *RoomHandler) Create(c *fiber.Ctx) error {
 	room, err := h.svc.Create(req.Name, req.Password, ownerID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "cannot create room",
+			"message": err.Error(),
 		})
 	}
 
@@ -55,6 +58,40 @@ func (h *RoomHandler) Create(c *fiber.Ctx) error {
 		"isProtected": room.Password != "",
 		"startsAt":    room.StartsAt,
 		"endAt":       room.EndAt,
+	})
+}
+
+func (h *RoomHandler) Update(c *fiber.Ctx) error {
+	ownerID := c.Locals("userID").(int64)
+	roomID := c.Params("id")
+	roomIDInt, err := strconv.ParseInt(roomID, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room id",
+		})
+	}
+
+	var input dto.RoomUpdateRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid body",
+		})
+	}
+
+	updated, err := h.svc.Update(roomIDInt, ownerID, &input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"id":          updated.ID,
+		"name":        updated.Name,
+		"ownerID":     updated.OwnerID,
+		"isProtected": updated.Password != "",
+		"startsAt":    updated.StartsAt,
+		"endAt":       updated.EndAt,
 	})
 }
 
@@ -83,7 +120,9 @@ func (h *RoomHandler) GetAll(c *fiber.Ctx) error {
 
 func (h *RoomHandler) GetAllOwnRooms(c *fiber.Ctx) error {
 	ownerID := c.Locals("userID").(int64)
-	rooms, err := h.svc.GetAllByOwnerID(ownerID)
+	onlyOpen := c.QueryBool("onlyOpen", false)
+
+	rooms, err := h.svc.GetAllByOwnerID(ownerID, onlyOpen)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "cannot get rooms",
@@ -178,4 +217,22 @@ func (h *RoomHandler) Join(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(fiber.Map{"token": token})
+}
+
+func (h *RoomHandler) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "invalid id",
+		})
+	}
+	err = h.svc.Delete(idInt)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{})
 }

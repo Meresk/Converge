@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Track } from "livekit-client";
 import {CustomControlBar} from "../components/livekitControls/CustomControlBar.tsx";
 import { CustomChat } from "../components/livekitControls/CustomChat.tsx";
+import {ParticipantList} from "../components/livekitControls/ParticipantList.tsx";
 
 const serverUrl = "ws://localhost:7880";
 type LocationState = { token?: string, selectedRoomId?: number };
@@ -47,6 +48,7 @@ const RoomPage: React.FC = () => {
         >
             <MyVideoConference chatVisible={chatVisible} />
             <RoomAudioRenderer />
+            <ParticipantList />
 
             <div style={{
                 position: "absolute",

@@ -14,9 +14,14 @@ export async function fetchOpenRooms(): Promise<Room[]> {
     return res.json();
 }
 
-export async function fetchOwnRooms(): Promise<Room[]> {
+export async function fetchOwnRooms(onlyOpen: boolean): Promise<Room[]> {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms/own`, {
+    const url = new URL(`${API_BASE}/api/rooms/own`);
+    if (onlyOpen) {
+        url.searchParams.append('onlyOpen', 'true');
+    }
+
+    const res = await fetch(url.toString(), {
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
     });
     if (!res.ok) {
@@ -65,4 +70,18 @@ export async function toggleRoomStatus(id: number) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message);
     }
+}
+
+export async function UpdateRoom(id: number, data: {name?: string, password?: string}): Promise<Room> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+        body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message);
+    }
+    return res.json();
 }

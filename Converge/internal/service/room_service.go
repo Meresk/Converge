@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Converge/internal/dto"
 	"Converge/internal/model"
 	"Converge/internal/repository"
 	"errors"
@@ -16,7 +17,9 @@ type RoomService interface {
 	ToggleRoomStatus(id int64, ownerID int64) error
 	JoinRoom(roomID int64, nickname, password string, isAuthorized bool) (string, error)
 	GetAllOpenRooms() ([]*model.Room, error)
-	GetAllByOwnerID(ownerID int64) ([]*model.Room, error)
+	GetAllByOwnerID(ownerID int64, onlyOpen bool) ([]*model.Room, error)
+	Update(id int64, ownerID int64, input *dto.RoomUpdateRequest) (*model.Room, error)
+	Delete(id int64) error
 }
 
 type roomService struct {
@@ -100,8 +103,8 @@ func (s *roomService) GetAll() ([]*model.Room, error) {
 	return s.roomRepo.FindAll()
 }
 
-func (s *roomService) GetAllByOwnerID(ownerID int64) ([]*model.Room, error) {
-	return s.roomRepo.FindAllByOwnerID(ownerID)
+func (s *roomService) GetAllByOwnerID(ownerID int64, onlyOpen bool) ([]*model.Room, error) {
+	return s.roomRepo.FindAllByOwnerID(ownerID, onlyOpen)
 }
 
 func (s *roomService) GetById(id int64) (*model.Room, error) {
@@ -126,4 +129,34 @@ func (s *roomService) ToggleRoomStatus(id int64, ownerID int64) error {
 	}
 
 	return s.roomRepo.Update(room)
+}
+
+func (s *roomService) Update(id int64, ownerID int64, input *dto.RoomUpdateRequest) (*model.Room, error) {
+	room, err := s.roomRepo.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if room.OwnerID == nil || *room.OwnerID != ownerID {
+		return nil, errors.New("you are not the owner of the room")
+	}
+
+	room.Name = input.Name
+	if input.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		room.Password = string(hash)
+	}
+
+	if err = s.roomRepo.Update(room); err != nil {
+		return nil, err
+	}
+
+	return room, nil
+}
+
+func (s *roomService) Delete(id int64) error {
+	return s.roomRepo.Delete(id)
 }

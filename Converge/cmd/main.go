@@ -72,7 +72,7 @@ func main() {
 	// Маршруты
 	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
-	roomH.Register(app, authMW.RequireTeacher())
+	roomH.Register(app, authMW.RequireTeacher(), authMW.RequireAdmin())
 	authH.Register(app)
 
 	// Запуск сервера

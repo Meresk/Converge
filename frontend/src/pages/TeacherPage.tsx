@@ -10,7 +10,7 @@ import {
     IconButton, ToggleButtonGroup, ToggleButton, createTheme, ThemeProvider
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import {fetchOpenRooms, createRoom, joinRoom, fetchOwnRooms, toggleRoomStatus} from '../services/rooms/roomsService.ts';
+import {createRoom, joinRoom, fetchOwnRooms, toggleRoomStatus} from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import { clearToken } from '../services/auth/storage.ts';
 import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
@@ -31,6 +31,7 @@ export default function TeacherPage() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
     const [nameError, setNameError] = useState(false);
+    const [duplicateNameError, setDuplicateNameError] = useState(false);
 
     const [joinModalOpen, setJoinModalOpen] = useState(false);
     const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
@@ -54,7 +55,7 @@ export default function TeacherPage() {
             setViewMode(newView);
             if (newView === 'table' && allRooms.length === 0) {
                 try {
-                    const data = await fetchOwnRooms();
+                    const data = await fetchOwnRooms(false);
                     setAllRooms(data);
                 } catch (err) {
                     console.error(err);
@@ -97,8 +98,10 @@ export default function TeacherPage() {
 
     const loadRooms = async () => {
         try {
-            const data = await fetchOpenRooms();
+            let data = await fetchOwnRooms(true);
             setRooms(data);
+            data = await fetchOwnRooms(false);
+            setAllRooms(data);
         } catch (err) {
             console.error(err);
         }
@@ -117,9 +120,12 @@ export default function TeacherPage() {
             setNewName('');
             setNewPassword('');
             setNameError(false);
-            loadRooms();
-        } catch (err) {
+            await loadRooms();
+        } catch (err: any) {
             console.error(err);
+            if (err.message && err.message.includes('Duplicate entry')) {
+                setDuplicateNameError(true);
+            }
         }
     };
 
@@ -178,12 +184,12 @@ export default function TeacherPage() {
                 const isClosed = !!params.row.endAt;
 
                 const handleToggle = async () => {
-                    const roomId = params.row.id; // или другое поле с id
+                    const roomId = params.row.id;
                     try {
-                        await toggleRoomStatus(roomId); // твой вызов API
+                        await toggleRoomStatus(roomId);
 
                             await loadRooms();
-                            const updatedRooms = await fetchOwnRooms();
+                            const updatedRooms = await fetchOwnRooms(false);
                             setAllRooms(updatedRooms);
                     } catch (err) {
                         alert('Не удалось изменить статус комнаты');
@@ -455,6 +461,8 @@ export default function TeacherPage() {
                 setNewPassword={setNewPassword}
                 nameError={nameError}
                 setNameError={setNameError}
+                duplicateNameError={duplicateNameError}
+                setDuplicateNameError={setDuplicateNameError}
             />
             <JoinRoomDialog
                 open={joinModalOpen}
