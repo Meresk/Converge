@@ -8,7 +8,7 @@ import {
     Grid,
     Drawer,
     IconButton, ToggleButtonGroup, ToggleButton, createTheme, ThemeProvider, Stack,
-     Snackbar, Alert
+    Snackbar, Alert, Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import {
@@ -283,56 +283,72 @@ export default function TeacherPage() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Button
-                            color={isClosed ? "success" : "error"}
-                            size="medium"
-                            onClick={handleToggle}
-                            sx={{
-                                minWidth: 44,
-                                padding: '6px',
-                                borderRadius: '8px',
-                                '& .MuiSvgIcon-root': { fontSize: 24 },
-                                '&:hover': {
-                                    backgroundColor: isClosed ? 'rgba(46, 204, 113, 0.3)' : 'rgba(244, 67, 54, 0.3)',
-                                }
-                            }}
+                        <Tooltip
+                            title={isClosed ? "Открыть" : "Скрыть"}
+                            arrow
+                            placement="top"
                         >
-                            {isClosed ? <Visibility /> : <VisibilityOff />}
-                        </Button>
-
-                        <Button
-                            color="primary"
-                            size="medium"
-                            onClick={handleEdit}
-                            sx={{
-                                minWidth: 44,
-                                padding: '6px',
-                                borderRadius: '8px',
-                                '& .MuiSvgIcon-root': { fontSize: 24 },
-                                '&:hover': {
-                                    backgroundColor: 'rgba(25, 118, 210, 0.3)',
-                                }
-                            }}
+                            <Button
+                                color={isClosed ? "success" : "error"}
+                                size="medium"
+                                onClick={handleToggle}
+                                sx={{
+                                    minWidth: 44,
+                                    padding: '6px',
+                                    borderRadius: '8px',
+                                    '& .MuiSvgIcon-root': { fontSize: 24 },
+                                    '&:hover': {
+                                        backgroundColor: isClosed ? 'rgba(46, 204, 113, 0.3)' : 'rgba(244, 67, 54, 0.3)',
+                                    }
+                                }}
+                            >
+                                {isClosed ? <Visibility /> : <VisibilityOff />}
+                            </Button>
+                        </Tooltip>
+                        <Tooltip
+                            title="Изменить"
+                            arrow
+                            placement="top"
                         >
-                            <Edit />
-                        </Button>
-
-                        <Button
-                            color="error"
-                            size="medium"
-                            onClick={handleDeleteClick}
-                            sx={{
-                                minWidth: 44,
-                                padding: '6px',
-                                borderRadius: '8px',
-                                '& .MuiSvgIcon-root': { fontSize: 24 },
-                                '&:hover': {
-                                    backgroundColor: 'rgba(244, 67, 54, 0.3)',
-                                }
-                            }}
+                            <Button
+                                color="primary"
+                                size="medium"
+                                onClick={handleEdit}
+                                sx={{
+                                    minWidth: 44,
+                                    padding: '6px',
+                                    borderRadius: '8px',
+                                    '& .MuiSvgIcon-root': { fontSize: 24 },
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(25, 118, 210, 0.3)',
+                                    }
+                                }}
+                            >
+                                <Edit />
+                            </Button>
+                        </Tooltip>
+                        <Tooltip
+                            title="Удалить"
+                            arrow
+                            placement="top"
                         >
-                            <Delete />
-                        </Button>
+                            <Button
+                                color="error"
+                                size="medium"
+                                onClick={handleDeleteClick}
+                                sx={{
+                                    minWidth: 44,
+                                    padding: '6px',
+                                    borderRadius: '8px',
+                                    '& .MuiSvgIcon-root': { fontSize: 24 },
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(244, 67, 54, 0.3)',
+                                    }
+                                }}
+                            >
+                                <Delete />
+                            </Button>
+                        </Tooltip>
                     </Stack>
                 );
             }
