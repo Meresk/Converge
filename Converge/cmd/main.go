@@ -48,17 +48,20 @@ func main() {
 	roleRepo := repository.NewRoleRepository(db)
 	roomRepo := repository.NewRoomRepository(db)
 	participantRepo := repository.NewParticipantRepository(db)
+	roomFileRepo := repository.NewRoomFileRepository(db)
 
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
 	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret, lkClient)
+	roomFileSvc := service.NewRoomFileService(roomFileRepo, cfg.StoragePath)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры
 	userH := handler.NewUserHandler(userSvc)
 	roleH := handler.NewRoleHandler(roleSvc)
 	roomH := handler.NewRoomHandler(roomSvc, cfg.JWTSecret)
+	roomFileH := handler.NewRoomFileHandler(roomFileSvc)
 	authH := handler.NewAuthHandler(authSvc)
 
 	// Middlewares
@@ -77,6 +80,7 @@ func main() {
 	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
 	roomH.Register(app, authMW.RequireTeacher(), authMW.RequireAdmin())
+	roomFileH.Register(app)
 	authH.Register(app)
 
 	// Запуск сервера
