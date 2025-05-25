@@ -46,6 +46,7 @@ services:
       - livekit-server
       - --health_port=7880
     environment:
+      # Test values, pls change this :)
       LIVEKIT_KEYS: "LK1234567890: abcdef1234567890abcdef1234567890"
       LIVEKIT_PROTOCOL: "http"
       LIVEKIT_INGRESS: ""
