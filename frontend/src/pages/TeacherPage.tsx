@@ -21,16 +21,16 @@ import {
 } from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import { clearToken } from '../services/auth/storage.ts';
-import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
-import CreateRoomModal from "../components/CreateRoomDialog.tsx";
+import JoinRoomDialog from "../components/dialogs/JoinRoomDialog.tsx";
+import CreateRoomModal from "../components/dialogs/CreateRoomDialog.tsx";
 import RoomCard from "../components/RoomCard.tsx";
 import {DataGrid, type GridColDef} from "@mui/x-data-grid";
 import { ruRU } from '@mui/x-data-grid/locales';
 import {format, parseISO} from "date-fns";
 import {ru} from "date-fns/locale";
 import {Delete, Edit, Visibility, VisibilityOff} from '@mui/icons-material';
-import EditRoomModal from "../components/EditRoomDialog.tsx";
-import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog.tsx";
+import EditRoomModal from "../components/dialogs/EditRoomDialog.tsx";
+import ConfirmDeleteDialog from "../components/dialogs/ConfirmDeleteDialog.tsx";
 import {customProfanityWords} from "../types/customProfanityWords.ts";
 
 const drawerWidth = 250;

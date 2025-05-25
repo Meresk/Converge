@@ -9,18 +9,19 @@ import (
 
 type RoomFileHandler struct {
 	fileService service.RoomFileService
+	roomService service.RoomService
 }
 
-func NewRoomFileHandler(fileService service.RoomFileService) *RoomFileHandler {
-	return &RoomFileHandler{fileService: fileService}
+func NewRoomFileHandler(fileService service.RoomFileService, roomService service.RoomService) *RoomFileHandler {
+	return &RoomFileHandler{fileService: fileService, roomService: roomService}
 }
 
-func (h *RoomFileHandler) Register(app *fiber.App) {
+func (h *RoomFileHandler) Register(app *fiber.App, onlyTeacher fiber.Handler) {
 	g := app.Group("/api/files")
-	g.Get("/", h.GetFilesByRoom)   // ?room_id=123 — получить файлы комнаты
-	g.Post("/", h.UploadFile)      // ?room_id=123 — загрузить файл в комнату
-	g.Get("/:id", h.DownloadFile)  // скачать файл по id
-	g.Delete("/:id", h.DeleteFile) // удалить файл по id
+	g.Get("/", h.GetFilesByRoom)                // ?room_id=123 — получить файлы комнаты
+	g.Post("/", onlyTeacher, h.UploadFile)      // ?room_id=123 — загрузить файл в комнату
+	g.Get("/:id", h.DownloadFile)               // скачать файл по id
+	g.Delete("/:id", onlyTeacher, h.DeleteFile) // удалить файл по id
 }
 
 func (h *RoomFileHandler) UploadFile(c *fiber.Ctx) error {
@@ -28,6 +29,13 @@ func (h *RoomFileHandler) UploadFile(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "invalid room_id",
+		})
+	}
+
+	roomExist, err := h.roomService.GetById(roomID)
+	if err != nil && roomExist == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": err.Error(),
 		})
 	}
 

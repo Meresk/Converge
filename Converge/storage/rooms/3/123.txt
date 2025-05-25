@@ -1,0 +1,11 @@
+ {/* Я НЕНАВИЖУ ЭТУ ОШИБКУ С GRID, ПУСТЬ ЧЕРТ КОТОРЫЙ ЭТО ПРИДУМАЛ ЗАСУНЕТ ЕЁ СЕБЕ В *** */}
+                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                    {rooms.map((room, index) => ( // @ts-expect-error
+
+ fontWeight: 'bold',
+  backgroundColor: '#2ecc71',
+  boxShadow: '0 2px 8px rgba(46, 204, 113, 0.4)',
+  mb: 2,
+  '&:hover': {
+    backgroundColor: '#27ae60',
+  },

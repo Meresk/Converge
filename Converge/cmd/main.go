@@ -61,7 +61,7 @@ func main() {
 	userH := handler.NewUserHandler(userSvc)
 	roleH := handler.NewRoleHandler(roleSvc)
 	roomH := handler.NewRoomHandler(roomSvc, cfg.JWTSecret)
-	roomFileH := handler.NewRoomFileHandler(roomFileSvc)
+	roomFileH := handler.NewRoomFileHandler(roomFileSvc, roomSvc)
 	authH := handler.NewAuthHandler(authSvc)
 
 	// Middlewares
@@ -80,7 +80,7 @@ func main() {
 	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
 	roomH.Register(app, authMW.RequireTeacher(), authMW.RequireAdmin())
-	roomFileH.Register(app)
+	roomFileH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
 	// Запуск сервера

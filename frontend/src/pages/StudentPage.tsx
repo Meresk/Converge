@@ -11,7 +11,7 @@ import {
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { fetchOpenRooms, joinRoom } from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
-import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
+import JoinRoomDialog from "../components/dialogs/JoinRoomDialog.tsx";
 import RoomCard from "../components/RoomCard.tsx";
 import {customProfanityWords} from "../types/customProfanityWords.ts";
 

@@ -10,15 +10,15 @@ import {
     Chat,
     Fullscreen,
     FullscreenExit, SpeakerNotesOff,
-    Group, GroupOff
+    Group, GroupOff, Folder, FolderOff
 } from "@mui/icons-material";
 import { IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
 import {getToken, isTokenValid} from "../../services/auth/storage.ts";
 
 interface CustomControlBarProps {
-    activePanel: 'chat' | 'participants' | null;
-    setActivePanel: (panel: 'chat' | 'participants' | null) => void;
+    activePanel: 'chat' | 'participants' | 'files' | null;
+    setActivePanel: (panel: 'chat' | 'participants'| 'files' | null) => void;
 }
 
 export function CustomControlBar({ activePanel, setActivePanel }: CustomControlBarProps) {
@@ -29,7 +29,7 @@ export function CustomControlBar({ activePanel, setActivePanel }: CustomControlB
     const [screenEnabled, setScreenEnabled] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
 
-    const togglePanel = (panel: 'chat' | 'participants') => {
+    const togglePanel = (panel: 'chat' | 'participants' | 'files') => {
         setActivePanel(activePanel === panel ? null : panel);
     };
 
@@ -104,6 +104,12 @@ export function CustomControlBar({ activePanel, setActivePanel }: CustomControlB
                 <Tooltip title={activePanel === 'participants' ? "Скрыть участников" : "Показать участников"}>
                     <IconButton onClick={() => togglePanel('participants')} color="primary">
                         {activePanel === 'participants' ? <Group /> : <GroupOff />}
+                    </IconButton>
+                </Tooltip>
+
+                <Tooltip title={activePanel === 'files' ? "Скрыть файлы" : "Показать файлы"}>
+                    <IconButton onClick={() => togglePanel('files')} color="primary">
+                        {activePanel === 'files' ? <Folder /> : <FolderOff />}
                     </IconButton>
                 </Tooltip>
 

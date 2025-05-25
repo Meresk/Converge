@@ -1,0 +1,13 @@
+begin = 0
+window_state
+result
+        
+for end in range(len(nums)):
+	window_state # чет с ним происходит
+	end - begin + 1 # window size
+
+	if # windown condition:
+		result
+		window_state
+		begin += 1 # shrink window
+return result 

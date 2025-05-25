@@ -12,9 +12,10 @@ import { Track } from "livekit-client";
 import {CustomControlBar} from "../components/livekitControls/CustomControlBar.tsx";
 import { CustomChat } from "../components/livekitControls/CustomChat.tsx";
 import {ParticipantList} from "../components/livekitControls/ParticipantList.tsx";
+import { CustomRoomFiles } from "../components/livekitControls/CustomRoomFiles.tsx";
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
-type LocationState = { token?: string, selectedRoomId?: number };
+type LocationState = { token?: string, selectedRoomId: number };
 
 const RoomPage: React.FC = () => {
     const location = useLocation();
@@ -24,7 +25,7 @@ const RoomPage: React.FC = () => {
     const token = state?.token;
 
     // Управление видимостью чата
-    type ActivePanel = 'chat' | 'participants' | null;
+    type ActivePanel = 'chat' | 'participants' | 'files' | null;
     const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 
     const handleOnLeave = () => {
@@ -68,6 +69,9 @@ const RoomPage: React.FC = () => {
             <CustomChat visible={activePanel === 'chat'} />
 
             <ParticipantList visible={activePanel === 'participants'} />
+
+            <CustomRoomFiles visible={activePanel === 'files'} roomId={state.selectedRoomId} />
+
         </LiveKitRoom>
     );
 };
