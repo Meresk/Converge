@@ -22,6 +22,7 @@ import {
     createTheme,
     ThemeProvider
 } from '@mui/material';
+import { ruRU } from '@mui/x-data-grid/locales';
 import { Add, Refresh, Logout, Edit, Delete } from '@mui/icons-material';
 import {
     DataGrid,
@@ -72,7 +73,14 @@ export default function AdminPage() {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
-    const initialFormState: CreateUserParams = { login: '', password: '', roleID: 2 };
+    const initialFormState: CreateUserParams = {
+        login: '',
+        password: '',
+        roleID: 2,
+        name: '',
+        surname: '',
+        patronymic: ''
+    };
     const [formData, setFormData] = useState<CreateUserParams>(initialFormState);
 
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 });
@@ -106,7 +114,14 @@ export default function AdminPage() {
 
     const handleEdit = (user: User) => {
         setEditingUser(user);
-        setFormData({ login: user.login, password: '', roleID: user.role.id });
+        setFormData({
+            login: user.login,
+            password: '',
+            roleID: user.role.id,
+            name: user.name,
+            surname: user.surname,
+            patronymic: user.patronymic
+        });
         setDialogOpen(true);
     };
 
@@ -119,7 +134,14 @@ export default function AdminPage() {
     const handleSave = async () => {
         try {
             if (editingUser) {
-                const updated = await updateUser(editingUser.id, formData);
+                const updated = await updateUser(editingUser.id, {
+                    login: formData.login,
+                    password: formData.password,
+                    roleId: formData.roleID,
+                    name: formData.name,
+                    surname: formData.surname,
+                    patronymic: formData.patronymic
+                });
                 setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
                 setSuccessMessage('Пользователь обновлён');
             } else {
@@ -139,7 +161,18 @@ export default function AdminPage() {
     };
 
     const columns: GridColDef[] = [
-        { field: 'id', headerName: 'ID', width: 90 },
+        {
+            field: 'index',
+            headerName: '№',
+            width: 70,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const rowIds = params.api.getAllRowIds();
+                const index = rowIds.indexOf(params.id);
+                return index + 1;
+            }
+        },
         { field: 'login', headerName: 'Логин', flex: 1, sortable: true },
         {
             field: 'role',
@@ -149,10 +182,21 @@ export default function AdminPage() {
             renderCell: (params: GridRenderCellParams<User>) => {
                 const roleName = params.row.role?.name;
                 return roleName === 'admin'
-                    ? 'Админ'
+                    ? 'Администратор'
                     : roleName === 'teacher'
-                        ? 'Учитель'
+                        ? 'Преподаватель'
                         : roleName ?? '';
+            }
+        },
+        {
+            field: 'fio',
+            headerName: 'ФИО',
+            flex: 2,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const { surname, name, patronymic } = params.row;
+                return `${surname} ${name} ${patronymic}`;
             }
         },
         {
@@ -172,7 +216,7 @@ export default function AdminPage() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Container maxWidth="xl" sx={{ py: 4 }}>
                 <Typography variant="h4" gutterBottom color="primary">Панель администратора</Typography>
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                     <Button variant="contained" onClick={handleCreate} startIcon={<Add />}>Добавить</Button>
@@ -187,10 +231,11 @@ export default function AdminPage() {
                         <DataGrid
                             rows={users}
                             columns={columns}
+                            localeText={ruRU.components.MuiDataGrid.defaultProps.localeText}
                             pagination
                             paginationModel={paginationModel}
                             onPaginationModelChange={model => setPaginationModel(model)}
-                            pageSizeOptions={[5, 10, 20]}
+                            pageSizeOptions={[5, 10, 20, 50, 100]}
                             sortingMode="client"
                             sortModel={sortModel}
                             onSortModelChange={model => setSortModel(model)}
@@ -224,6 +269,21 @@ export default function AdminPage() {
                             onChange={e => setFormData({ ...formData, password: e.target.value })}
                             margin="normal"
                         />
+                        <TextField
+                            fullWidth label="Имя" value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            margin="normal"
+                        />
+                        <TextField
+                            fullWidth label="Фамилия" value={formData.surname}
+                            onChange={e => setFormData({ ...formData, surname: e.target.value })}
+                            margin="normal"
+                        />
+                        <TextField
+                            fullWidth label="Отчество" value={formData.patronymic}
+                            onChange={e => setFormData({ ...formData, patronymic: e.target.value })}
+                            margin="normal"
+                        />
                         <FormControl fullWidth margin="normal">
                             <InputLabel id="role-select-label">Роль</InputLabel>
                             <Select
@@ -232,8 +292,8 @@ export default function AdminPage() {
                                 label="Роль"
                                 onChange={e => setFormData({ ...formData, roleID: Number(e.target.value) })}
                             >
-                                <MenuItem value={1}>Админ</MenuItem>
-                                <MenuItem value={2}>Учитель</MenuItem>
+                                <MenuItem value={1}>Администратор</MenuItem>
+                                <MenuItem value={2}>Преподаватель</MenuItem>
                             </Select>
                         </FormControl>
                     </DialogContent>

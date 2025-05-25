@@ -1,5 +1,8 @@
 // components/CreateRoomModal.tsx
+import {AutoAwesome, Visibility, VisibilityOff} from '@mui/icons-material';
 import { Box, Button, Typography, Modal, Fade, TextField } from '@mui/material';
+import { IconButton, InputAdornment } from '@mui/material';
+import { useState } from 'react';
 
 interface CreateRoomModalProps {
     open: boolean;
@@ -11,6 +14,13 @@ interface CreateRoomModalProps {
     setNewPassword: (value: string) => void;
     nameError: boolean;
     setNameError: (value: boolean) => void;
+    duplicateNameError: boolean;
+    setDuplicateNameError: (value: boolean) => void;
+}
+
+function generateRandomPassword(length = 6) {
+    const chars = '0123456789';
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
 export default function CreateRoomModal({
@@ -23,7 +33,13 @@ export default function CreateRoomModal({
                                             setNewPassword,
                                             nameError,
                                             setNameError,
+                                            duplicateNameError,
+                                            setDuplicateNameError,
                                         }: CreateRoomModalProps) {
+
+    const [showPassword, setShowPassword] = useState(false);
+
+
     return (
         <Modal open={open} onClose={onClose} closeAfterTransition>
             <Fade in={open}>
@@ -58,24 +74,35 @@ export default function CreateRoomModal({
                             if (nameError && e.target.value.trim()) {
                                 setNameError(false);
                             }
+                            if (duplicateNameError) {
+                                setDuplicateNameError(false);
+                            }
                         }}
                         margin="normal"
-                        error={nameError}
-                        helperText={nameError ? 'Название не может быть пустым' : ''}
+                        error={nameError || duplicateNameError}
+                        helperText={
+                            nameError
+                                ? 'Название не может быть пустым'
+                                : duplicateNameError
+                                    ? 'Комната с таким названием уже существует'
+                                    : ''
+                        }
                         InputLabelProps={{
-                            sx: { color: nameError ? 'error.main' : '#bbb' },
+                            sx: {
+                                color: nameError || duplicateNameError ? 'error.main' : '#bbb',
+                            },
                         }}
                         InputProps={{
                             sx: {
                                 color: 'white',
                                 '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: nameError ? 'error.main' : '#555',
+                                    borderColor: nameError || duplicateNameError ? 'error.main' : '#555',
                                 },
                                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: nameError ? 'error.main' : '#888',
+                                    borderColor: nameError || duplicateNameError ? 'error.main' : '#888',
                                 },
                                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: nameError ? 'error.main' : 'primary.main',
+                                    borderColor: nameError || duplicateNameError ? 'error.main' : 'primary.main',
                                 },
                             },
                         }}
@@ -85,7 +112,7 @@ export default function CreateRoomModal({
                         fullWidth
                         label="Пароль (необязательно)"
                         variant="outlined"
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         margin="normal"
@@ -105,6 +132,25 @@ export default function CreateRoomModal({
                                     borderColor: 'primary.main',
                                 },
                             },
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={() => setNewPassword(generateRandomPassword())}
+                                        edge="end"
+                                        sx={{ color: '#bbb' }}
+                                        title="Сгенерировать пароль"
+                                    >
+                                        <AutoAwesome />
+                                    </IconButton>
+                                    <IconButton
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        edge="end"
+                                        sx={{ color: '#bbb' }}
+                                    >
+                                        {showPassword ? <Visibility /> : <VisibilityOff /> }
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
                         }}
                     />
 

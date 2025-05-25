@@ -9,10 +9,12 @@ interface JoinRoomDialogProps {
     joinName: string;
     joinPassword: string;
     isProtected: boolean;
-    joinError: string;
     setJoinName: (value: string) => void;
     setJoinPassword: (value: string) => void;
-    setJoinError: (value: string) => void;
+    joinNameError: string;
+    joinPasswordError: string;
+    setJoinNameError: (value: string) => void;
+    setJoinPasswordError: (value: string) => void;
 }
 
 const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
@@ -22,10 +24,12 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                                                            joinName,
                                                            joinPassword,
                                                            isProtected,
-                                                           joinError,
                                                            setJoinName,
                                                            setJoinPassword,
-                                                           setJoinError,
+                                                           joinNameError,
+                                                           joinPasswordError,
+                                                           setJoinNameError,
+                                                           setJoinPasswordError,
                                                        }) => {
     return (
         <Modal open={open} onClose={onClose} closeAfterTransition>
@@ -57,11 +61,11 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                         value={joinName}
                         onChange={(e) => {
                             setJoinName(e.target.value);
-                            if (joinError) setJoinError('');
+                            if (joinNameError) setJoinNameError('');
                         }}
                         margin="normal"
-                        error={!!joinError}
-                        helperText={joinError || ''}
+                        error={!!joinNameError}
+                        helperText={joinNameError || ''}
                         InputLabelProps={{ sx: { color: '#bbb' } }}
                         InputProps={{
                             sx: {
@@ -79,8 +83,13 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                             label="Пароль"
                             type="password"
                             value={joinPassword}
-                            onChange={(e) => setJoinPassword(e.target.value)}
+                            onChange={(e) => {
+                                setJoinPassword(e.target.value);
+                                if (joinPasswordError) setJoinPasswordError('');
+                            }}
                             margin="normal"
+                            error={!!joinPasswordError}
+                            helperText={joinPasswordError || ''}
                             InputLabelProps={{ sx: { color: '#bbb' } }}
                             InputProps={{
                                 sx: {

@@ -63,6 +63,9 @@ func (s *userServiceImpl) Update(id int64, input *model.User) (*model.User, erro
 
 	existingUser.Login = input.Login
 	existingUser.RoleID = input.RoleID
+	existingUser.Name = input.Name
+	existingUser.Surname = input.Surname
+	existingUser.Patronymic = input.Patronymic
 
 	if input.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)

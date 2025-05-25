@@ -1,34 +1,36 @@
 import React, { useState } from "react";
 import {
-    ControlBar,
     GridLayout,
     LiveKitRoom,
     ParticipantTile,
     RoomAudioRenderer,
     useTracks,
-    Chat
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Track } from "livekit-client";
+import {CustomControlBar} from "../components/livekitControls/CustomControlBar.tsx";
+import { CustomChat } from "../components/livekitControls/CustomChat.tsx";
+import {ParticipantList} from "../components/livekitControls/ParticipantList.tsx";
+import { CustomRoomFiles } from "../components/livekitControls/CustomRoomFiles.tsx";
 
-const serverUrl = "ws://localhost:7880";
-type LocationState = { token?: string };
+const serverUrl = import.meta.env.VITE_SERVER_URL;
+type LocationState = { token?: string, selectedRoomId: number };
 
 const RoomPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Состояние для управления видимостью чата
-    const [chatVisible, setChatVisible] = useState(true);
+    const state = location.state as LocationState;
+    const token = state?.token;
+
+    // Управление видимостью чата
+    type ActivePanel = 'chat' | 'participants' | 'files' | null;
+    const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 
     const handleOnLeave = () => {
         navigate(-1);
     };
-
-    // Получаем токен и имя комнаты из state
-    const state = location.state as LocationState;
-    const token = state?.token;
 
     return (
         <LiveKitRoom
@@ -41,69 +43,46 @@ const RoomPage: React.FC = () => {
                 height: "100vh",
                 display: "flex",
                 flexDirection: "row",
-                overflow: "hidden", // Предотвращаем прокрутку
+                overflow: "hidden",
+                position: "relative", // чтобы кнопки с absolute работали относительно этого контейнера
             }}
             onDisconnected={handleOnLeave}
         >
-            <MyVideoConference chatVisible={chatVisible} />
+            <MyVideoConference panelVisible={activePanel} />
             <RoomAudioRenderer />
 
-            {/* Control Bar */}
-            <ControlBar
-                style={{
-                    position: "absolute",
-                    bottom: 0,
-                    width: "100%",
-                    zIndex: 2,
-                }}
-            />
+            <div style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: "100%",
+                zIndex: 10,
+                backgroundColor: "rgba(0,0,0,0.7)"
+            }}>
+                <CustomControlBar
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                />
+            </div>
 
-            {/* Кнопка для скрытия/показа чата */}
-            <button
-                onClick={() => setChatVisible(prev => !prev)}
-                style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "10px",
-                    zIndex: 3,
-                    padding: "10px",
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    color: "white",
-                    borderRadius: "5px",
-                }}
-            >
-                {chatVisible ? "Hide Chat" : "Show Chat"}
-            </button>
+            {/* Чат */}
+            <CustomChat visible={activePanel === 'chat'} />
 
-            {/* Компонент чата с передачей сообщений */}
-            <Chat
-                style={{
-                    position: "absolute",
-                    right: "0px",
-                    bottom: "var(--lk-control-bar-height)",
-                    width: chatVisible ? "300px" : "0", // Скрытие чата
-                    height: "calc(100vh - var(--lk-control-bar-height))", // Высота чата
-                    backgroundColor: "rgba(0, 0, 0, 0.7)",
-                    borderRadius: "8px",
-                    zIndex: 1,
-                    overflow: "auto", // Добавление прокрутки для чата
-                    transition: "width 0.3s ease-in-out", // Плавное изменение ширины
-                }}
-            />
+            <ParticipantList visible={activePanel === 'participants'} />
+
+            <CustomRoomFiles visible={activePanel === 'files'} roomId={state.selectedRoomId} />
+
         </LiveKitRoom>
     );
 };
 
 interface MyVideoConferenceProps {
-    chatVisible: boolean;
+    panelVisible: string | null;
 }
 
-function MyVideoConference({ chatVisible }: MyVideoConferenceProps) {
+function MyVideoConference({ panelVisible }: MyVideoConferenceProps) {
     const tracks = useTracks(
-        [
-            { source: Track.Source.Camera, withPlaceholder: false },
-            { source: Track.Source.ScreenShare, withPlaceholder: false },
-        ],
+        [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
         { onlySubscribed: false }
     );
 
@@ -112,9 +91,9 @@ function MyVideoConference({ chatVisible }: MyVideoConferenceProps) {
             tracks={tracks}
             style={{
                 height: "calc(100vh - var(--lk-control-bar-height))",
-                width: chatVisible ? "calc(100vw - 300px)" : "100vw", // Регулируем ширину при скрытии чата
-                marginRight: chatVisible ? "300px" : "0", // Отступ для чата
-                transition: "width 0.3s ease-in-out", // Плавное изменение ширины
+                width: panelVisible != null ? "calc(100vw - 300px)" : "100vw",
+                marginRight: panelVisible != null ? "300px" : "0",
+                transition: "width 0.3s ease-in-out",
             }}
         >
             <ParticipantTile />

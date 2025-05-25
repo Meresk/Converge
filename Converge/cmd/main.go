@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	lksdk "github.com/livekit/server-sdk-go/v2"
 )
 
 func main() {
@@ -39,22 +40,28 @@ func main() {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 
+	// LiveKit
+	lkClient := lksdk.NewRoomServiceClient(cfg.LiveKitServerURL, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
+
 	// Репозитории
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
 	roomRepo := repository.NewRoomRepository(db)
 	participantRepo := repository.NewParticipantRepository(db)
+	roomFileRepo := repository.NewRoomFileRepository(db)
 
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
-	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
+	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret, lkClient)
+	roomFileSvc := service.NewRoomFileService(roomFileRepo, cfg.StoragePath)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры
 	userH := handler.NewUserHandler(userSvc)
 	roleH := handler.NewRoleHandler(roleSvc)
-	roomH := handler.NewRoomHandler(roomSvc)
+	roomH := handler.NewRoomHandler(roomSvc, cfg.JWTSecret)
+	roomFileH := handler.NewRoomFileHandler(roomFileSvc, roomSvc)
 	authH := handler.NewAuthHandler(authSvc)
 
 	// Middlewares
@@ -72,7 +79,8 @@ func main() {
 	// Маршруты
 	userH.Register(app, authMW.RequireAdmin())
 	roleH.Register(app)
-	roomH.Register(app, authMW.RequireTeacher())
+	roomH.Register(app, authMW.RequireTeacher(), authMW.RequireAdmin())
+	roomFileH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
 	// Запуск сервера

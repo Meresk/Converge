@@ -2,9 +2,12 @@ export interface Room {
     id: number;
     name: string;
     ownerID?: number;
+    ownerName?: string;
+    ownerSurname?: string;
+    ownerPatronymic?: string;
     isProtected: boolean;
     startsAt: Date;
-    EndsAt?: Date | null;
+    endsAt?: Date | null;
 }
 
 export interface JoinRoomResponse {

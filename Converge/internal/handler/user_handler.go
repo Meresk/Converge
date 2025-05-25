@@ -35,9 +35,12 @@ func (h *UserHandler) GetAll(c *fiber.Ctx) error {
 	response := make([]fiber.Map, len(users))
 	for i, user := range users {
 		response[i] = fiber.Map{
-			"id":    user.ID,
-			"login": user.Login,
-			"role":  user.Role,
+			"id":         user.ID,
+			"login":      user.Login,
+			"role":       user.Role,
+			"name":       user.Name,
+			"surname":    user.Surname,
+			"patronymic": user.Patronymic,
 		}
 	}
 
@@ -61,9 +64,12 @@ func (h *UserHandler) GetByID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"id":    user.ID,
-		"login": user.Login,
-		"role":  user.Role,
+		"id":         user.ID,
+		"login":      user.Login,
+		"role":       user.Role,
+		"name":       user.Name,
+		"surname":    user.Surname,
+		"patronymic": user.Patronymic,
 	})
 }
 
@@ -95,9 +101,12 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"id":    created.ID,
-		"login": created.Login,
-		"role":  created.Role,
+		"id":         created.ID,
+		"login":      created.Login,
+		"role":       created.Role,
+		"name":       created.Name,
+		"surname":    created.Surname,
+		"patronymic": created.Patronymic,
 	})
 }
 
@@ -143,8 +152,11 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"id":    updated.ID,
-		"login": updated.Login,
-		"role":  updated.Role,
+		"id":         updated.ID,
+		"login":      updated.Login,
+		"role":       updated.Role,
+		"name":       updated.Name,
+		"surname":    updated.Surname,
+		"patronymic": updated.Patronymic,
 	})
 }

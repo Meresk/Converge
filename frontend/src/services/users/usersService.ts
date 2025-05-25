@@ -46,7 +46,7 @@ export async function createUser(params: CreateUserParams): Promise<User> {
     return res.json();
 }
 
-export async function updateUser(id: number, data: { login?: string; password?: string; roleId?: number }): Promise<User> {
+export async function updateUser(id: number, data: { login?: string; password?: string; roleId?: number, name?: string, surname?: string, patronymic?: string }): Promise<User> {
     const res = await fetch(`${API_BASE}/api/users/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),

@@ -13,6 +13,7 @@ type Config struct {
 	DatabaseDSN string `env:"DATABASE_DSN,required"`
 	JWTSecret   string `env:"JWT_SECRET_KEY,required"`
 	Port        string `env:"APP_PORT,required,default=8080"`
+	StoragePath string `env:"STORAGE_PATH,required"`
 
 	AllowOrigins string `env:"CORS_ALLOW_ORIGINS,required"`
 	AllowMethods string `env:"CORS_ALLOW_METHODS,default=GET,POST,PUT,DELETE"`
@@ -37,6 +38,7 @@ func LoadConfig() (*Config, error) {
 		AllowOrigins:     os.Getenv("CORS_ALLOW_ORIGINS"),
 		AllowMethods:     os.Getenv("CORS_ALLOW_METHODS"),
 		AllowHeaders:     os.Getenv("CORS_ALLOW_HEADERS"),
+		StoragePath:      os.Getenv("STORAGE_PATH"),
 	}
 
 	return cfg, nil

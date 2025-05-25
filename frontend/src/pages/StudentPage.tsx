@@ -11,8 +11,10 @@ import {
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { fetchOpenRooms, joinRoom } from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
-import JoinRoomDialog from "../components/JoinRoomDialog.tsx";
+import JoinRoomDialog from "../components/dialogs/JoinRoomDialog.tsx";
 import RoomCard from "../components/RoomCard.tsx";
+import {customProfanityWords} from "../types/customProfanityWords.ts";
+
 
 export default function StudentPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -23,7 +25,8 @@ export default function StudentPage() {
     const [isSelectedRoomProtected, setIsSelectedRoomProtected] = useState(false);
     const [joinName, setJoinName] = useState('');
     const [joinPassword, setJoinPassword] = useState('');
-    const [joinError, setJoinError] = useState('');
+    const [joinNameError, setJoinNameError] = useState('');
+    const [joinPasswordError, setJoinPasswordError] = useState('');
 
     useEffect(() => {
         loadRooms();
@@ -43,14 +46,24 @@ export default function StudentPage() {
         setIsSelectedRoomProtected(isProtected);
         setJoinName('');
         setJoinPassword('');
-        setJoinError('');
+        setJoinNameError('');
+        setJoinPasswordError('');
         setJoinModalOpen(true);
     };
 
     const handleJoinRoom = async () => {
+        setJoinNameError('');
+        setJoinPasswordError('');
+
         const trimmedName = joinName.trim();
         if (!trimmedName) {
-            setJoinError('Имя не может быть пустым');
+            setJoinNameError('Имя не может быть пустым');
+            return;
+        }
+
+        const trimmedLowerName = trimmedName.toLowerCase();
+        if (customProfanityWords.some(word => trimmedLowerName.includes(word))) {
+            setJoinNameError('Пожалуйста, введите корректное имя без нецензурных слов');
             return;
         }
 
@@ -60,13 +73,20 @@ export default function StudentPage() {
                 nickname: trimmedName,
                 password: joinPassword,
             });
-            console.log(token);
-            navigate('/room', { state: { token } });
+            navigate('/room', { state: { token, selectedRoomId } });
         } catch (error) {
             if (error instanceof Error) {
-                setJoinError(error.message);
+                const message = error.message;
+                if (message.includes('уже существует') || message.includes('Пользователь с таким именем')) {
+                    setJoinNameError('Пользователь с таким именем уже в комнате');
+                } else if (message.includes('Неверный пароль')) {
+                    setJoinPasswordError('Неверный пароль');
+                } else {
+                    // fallback, например, можно показать где-нибудь в alert или toast
+                    setJoinNameError(message);
+                }
             } else {
-                setJoinError('Ошибка подключения');
+                setJoinNameError('Ошибка подключения');
             }
         }
     };
@@ -115,7 +135,7 @@ export default function StudentPage() {
                         textTransform: 'uppercase',
                     }}
                 >
-                    Список активных комнат
+                    Список комнат
                 </Typography>
 
                 <Grid container spacing={4} justifyContent="center">
@@ -140,6 +160,7 @@ export default function StudentPage() {
                             <RoomCard
                                 name={room.name}
                                 isProtected={room.isProtected}
+                                ownerFullName={`${room.ownerSurname} ${room.ownerName} ${room.ownerPatronymic}`}
                                 onClick={() => handleJoinClick(room.id, room.isProtected)}
                             />
                         </Grid>
@@ -154,10 +175,12 @@ export default function StudentPage() {
                 joinName={joinName}
                 joinPassword={joinPassword}
                 isProtected={isSelectedRoomProtected}
-                joinError={joinError}
+                joinNameError={joinNameError}
+                joinPasswordError={joinPasswordError}
                 setJoinName={setJoinName}
                 setJoinPassword={setJoinPassword}
-                setJoinError={setJoinError}
+                setJoinNameError={setJoinNameError}
+                setJoinPasswordError={setJoinPasswordError}
             />
         </Box>
     );
