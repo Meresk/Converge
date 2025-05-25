@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	lksdk "github.com/livekit/server-sdk-go/v2"
 )
 
 func main() {
@@ -39,6 +40,9 @@ func main() {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 
+	// LiveKit
+	lkClient := lksdk.NewRoomServiceClient(cfg.LiveKitServerURL, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
+
 	// Репозитории
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
@@ -48,7 +52,7 @@ func main() {
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
-	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret)
+	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret, lkClient)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// Хэндлеры

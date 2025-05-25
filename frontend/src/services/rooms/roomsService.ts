@@ -53,8 +53,13 @@ export async function joinRoom(params: JoinRoomParams): Promise<string> {
         body: JSON.stringify(params),
     })
     if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message);
+        const { message } = await res.json();
+        const errorMessages: Record<string, string> = {
+            'user with this nickname already in room': 'Пользователь с таким именем уже в комнате',
+            'wrong room password': 'Неверный пароль',
+        };
+        const localizedMessage = errorMessages[message] || message || 'Не удалось подключиться к комнате';
+        throw new Error(localizedMessage);
     }
     const data: JoinRoomResponse = await res.json();
     return data.token;

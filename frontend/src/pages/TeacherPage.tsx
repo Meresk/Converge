@@ -31,6 +31,7 @@ import {ru} from "date-fns/locale";
 import {Delete, Edit, Visibility, VisibilityOff} from '@mui/icons-material';
 import EditRoomModal from "../components/EditRoomDialog.tsx";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog.tsx";
+import {customProfanityWords} from "../types/customProfanityWords.ts";
 
 const drawerWidth = 250;
 
@@ -49,7 +50,9 @@ export default function TeacherPage() {
     const [isSelectedRoomProtected, setIsSelectedRoomProtected] = useState(false);
     const [joinName, setJoinName] = useState('');
     const [joinPassword, setJoinPassword] = useState('');
-    const [joinError, setJoinError] = useState('');
+    const [joinNameError, setJoinNameError] = useState('');
+    const [joinPasswordError, setJoinPasswordError] = useState('');
+
 
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
     const [allRooms, setAllRooms] = useState<Room[]>([]);
@@ -84,14 +87,24 @@ export default function TeacherPage() {
         setIsSelectedRoomProtected(isProtected);
         setJoinName('');
         setJoinPassword('');
-        setJoinError('');
+        setJoinNameError('');
+        setJoinPasswordError('');
         setJoinModalOpen(true);
     };
 
     const handleJoinRoom = async () => {
+        setJoinNameError('');
+        setJoinPasswordError('');
+
         const trimmedName = joinName.trim();
         if (!trimmedName) {
-            setJoinError('Имя не может быть пустым');
+            setJoinNameError('Имя не может быть пустым');
+            return;
+        }
+
+        const trimmedLowerName = trimmedName.toLowerCase();
+        if (customProfanityWords.some(word => trimmedLowerName.includes(word))) {
+            setJoinNameError('Пожалуйста, введите корректное имя без нецензурных слов');
             return;
         }
 
@@ -104,9 +117,17 @@ export default function TeacherPage() {
             navigate('/room', { state: { token, selectedRoomId } });
         } catch (error) {
             if (error instanceof Error) {
-                setJoinError(error.message);
+                const message = error.message;
+                if (message.includes('уже существует') || message.includes('Пользователь с таким именем')) {
+                    setJoinNameError('Пользователь с таким именем уже в комнате');
+                } else if (message.includes('Неверный пароль')) {
+                    setJoinPasswordError('Неверный пароль');
+                } else {
+                    // fallback, например, можно показать где-нибудь в alert или toast
+                    setJoinNameError(message);
+                }
             } else {
-                setJoinError('Ошибка подключения');
+                setJoinNameError('Ошибка подключения');
             }
         }
     };
@@ -616,10 +637,12 @@ export default function TeacherPage() {
                 joinName={joinName}
                 joinPassword={joinPassword}
                 isProtected={isSelectedRoomProtected}
-                joinError={joinError}
+                setJoinNameError={setJoinNameError}
+                setJoinPasswordError={setJoinPasswordError}
+                joinNameError={joinNameError}
+                joinPasswordError={joinPasswordError}
                 setJoinName={setJoinName}
                 setJoinPassword={setJoinPassword}
-                setJoinError={setJoinError}
             />
             <EditRoomModal
                 open={editModalOpen}

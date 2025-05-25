@@ -25,7 +25,8 @@ export default function StudentPage() {
     const [isSelectedRoomProtected, setIsSelectedRoomProtected] = useState(false);
     const [joinName, setJoinName] = useState('');
     const [joinPassword, setJoinPassword] = useState('');
-    const [joinError, setJoinError] = useState('');
+    const [joinNameError, setJoinNameError] = useState('');
+    const [joinPasswordError, setJoinPasswordError] = useState('');
 
     useEffect(() => {
         loadRooms();
@@ -45,20 +46,24 @@ export default function StudentPage() {
         setIsSelectedRoomProtected(isProtected);
         setJoinName('');
         setJoinPassword('');
-        setJoinError('');
+        setJoinNameError('');
+        setJoinPasswordError('');
         setJoinModalOpen(true);
     };
 
     const handleJoinRoom = async () => {
+        setJoinNameError('');
+        setJoinPasswordError('');
+
         const trimmedName = joinName.trim();
         if (!trimmedName) {
-            setJoinError('Имя не может быть пустым');
+            setJoinNameError('Имя не может быть пустым');
             return;
         }
-        const trimmedLowerName = trimmedName.toLowerCase();
 
-        if ( customProfanityWords.some(word => trimmedLowerName.includes(word))) {
-            setJoinError('Поажлуйста, введите корректное имя без нецензурных слов');
+        const trimmedLowerName = trimmedName.toLowerCase();
+        if (customProfanityWords.some(word => trimmedLowerName.includes(word))) {
+            setJoinNameError('Пожалуйста, введите корректное имя без нецензурных слов');
             return;
         }
 
@@ -71,9 +76,17 @@ export default function StudentPage() {
             navigate('/room', { state: { token, selectedRoomId } });
         } catch (error) {
             if (error instanceof Error) {
-                setJoinError(error.message);
+                const message = error.message;
+                if (message.includes('уже существует') || message.includes('Пользователь с таким именем')) {
+                    setJoinNameError('Пользователь с таким именем уже в комнате');
+                } else if (message.includes('Неверный пароль')) {
+                    setJoinPasswordError('Неверный пароль');
+                } else {
+                    // fallback, например, можно показать где-нибудь в alert или toast
+                    setJoinNameError(message);
+                }
             } else {
-                setJoinError('Ошибка подключения');
+                setJoinNameError('Ошибка подключения');
             }
         }
     };
@@ -162,10 +175,12 @@ export default function StudentPage() {
                 joinName={joinName}
                 joinPassword={joinPassword}
                 isProtected={isSelectedRoomProtected}
-                joinError={joinError}
+                joinNameError={joinNameError}
+                joinPasswordError={joinPasswordError}
                 setJoinName={setJoinName}
                 setJoinPassword={setJoinPassword}
-                setJoinError={setJoinError}
+                setJoinNameError={setJoinNameError}
+                setJoinPasswordError={setJoinPasswordError}
             />
         </Box>
     );

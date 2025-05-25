@@ -4,8 +4,11 @@ import (
 	"Converge/internal/dto"
 	"Converge/internal/model"
 	"Converge/internal/repository"
+	"context"
 	"errors"
 	"github.com/livekit/protocol/auth"
+	"github.com/livekit/protocol/livekit"
+	lksdk "github.com/livekit/server-sdk-go/v2"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -27,10 +30,11 @@ type roomService struct {
 	participantRepo repository.ParticipantRepository
 	apiKey          string
 	apiSecret       string
+	lkClient        *lksdk.RoomServiceClient
 }
 
-func NewRoomService(rr repository.RoomRepository, pr repository.ParticipantRepository, apiKey, apiSecret string) RoomService {
-	return &roomService{roomRepo: rr, participantRepo: pr, apiKey: apiKey, apiSecret: apiSecret}
+func NewRoomService(rr repository.RoomRepository, pr repository.ParticipantRepository, apiKey, apiSecret string, lkCl *lksdk.RoomServiceClient) RoomService {
+	return &roomService{roomRepo: rr, participantRepo: pr, apiKey: apiKey, apiSecret: apiSecret, lkClient: lkCl}
 }
 
 func (s *roomService) GetAllOpenRooms() ([]*model.Room, error) {
@@ -46,6 +50,18 @@ func (s *roomService) JoinRoom(roomID int64, nickname, password string, isAuthor
 	if room.Password != "" {
 		if err := bcrypt.CompareHashAndPassword([]byte(room.Password), []byte(password)); err != nil {
 			return "", errors.New("wrong room password")
+		}
+	}
+
+	resp, err := s.lkClient.ListParticipants(context.Background(), &livekit.ListParticipantsRequest{
+		Room: room.Name,
+	})
+	if err != nil {
+		return "", errors.New("failed to check participants")
+	}
+	for _, p := range resp.Participants {
+		if p.Identity == nickname {
+			return "", errors.New("user with this nickname already in room")
 		}
 	}
 

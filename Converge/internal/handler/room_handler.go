@@ -228,7 +228,7 @@ func (h *RoomHandler) Join(c *fiber.Ctx) error {
 	token, err := h.svc.JoinRoom(req.Id, req.Nickname, req.Password, isAuthorized)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 	}
 	return c.JSON(fiber.Map{"token": token})
