@@ -14,8 +14,11 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
-      - livekit
+      mysql:
+        condition: service_healthy
+    networks:
+      - converge-net
+
 
   # Frontend (React + Vite)
   frontend:
@@ -23,13 +26,15 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:80"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8080
-      - VITE_SERVER_URL=ws://localhost:7880
+      - "5173:5173"
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
       - livekit
+    networks:
+       - converge-net
+
 
   # LiveKit server
   livekit:
@@ -41,16 +46,19 @@ services:
       - "7882:7882/udp"
       - "7883:7883/udp"
       - "7884:7884/udp"
-      - "50000-60000:50000-60000/udp"
+      - "50000-51000:50000-51000/udp"
     command:
       - livekit-server
       - --health_port=7880
     environment:
+      # Test values, pls change this :)
       LIVEKIT_KEYS: "LK1234567890: abcdef1234567890abcdef1234567890"
       LIVEKIT_PROTOCOL: "http"
       LIVEKIT_INGRESS: ""
       LIVEKIT_CERT: ""
       LIVEKIT_KEY: ""
+    networks:
+      - converge-net
 
   # MySQL
   mysql:
@@ -65,6 +73,18 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+       - converge-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
 
 volumes:
   mysql_data:
+
+networks:
+  converge-net:
+    driver: bridge

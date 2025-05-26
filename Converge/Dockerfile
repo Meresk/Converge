@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Собираем бинарник
-RUN go build -o main ./cmd/app
+RUN go build -o main ./cmd/
 
 # Этап запуска
 FROM alpine:latest
@@ -26,7 +26,6 @@ WORKDIR /root/
 
 # Копируем бинарник и другие нужные файлы
 COPY --from=builder /app/main .
-COPY --from=builder /app/storage ./storage
 
 # Открываем порт, который использует приложение
 EXPOSE 8080
