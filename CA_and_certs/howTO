@@ -1,0 +1,18 @@
+# Папочка для всей это еба
+mkdir certs
+
+# генерация секретного ключа
+openssl genrsa -out livekit.key 2048
+
+# Создаем запрос сретификат для нашего IP CSR(Certificate Signing Request)
+openssl req -new -key livekit.key \
+  -subj "/CN=192.168.0.16" \
+  -addext "subjectAltName = IP:192.168.0.16" \
+  -out livekit.csr
+
+# Подписываем наш сертификат CSR собственным ключом и получаем готовый подписанный сертификат CRT
+openssl x509 -req -in livekit.csr \
+  -signkey livekit.key \
+  -days 365 \
+  -extfile <(printf "subjectAltName = IP:192.168.0.16") \
+  -out livekit.crt
