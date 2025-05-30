@@ -12,7 +12,7 @@ function getAuthHeaders() {
 }
 
 export async function fetchUsers(): Promise<User[]> {
-    const res = await fetch(`${API_BASE}/api/users`, {
+    const res = await fetch(`${API_BASE}/users`, {
         headers: getAuthHeaders(),
     });
     if (!res.ok) {
@@ -23,7 +23,7 @@ export async function fetchUsers(): Promise<User[]> {
 }
 
 export async function fetchUserById(id: number): Promise<User> {
-    const res = await fetch(`${API_BASE}/api/users/${id}`, {
+    const res = await fetch(`${API_BASE}/users/${id}`, {
         headers: getAuthHeaders(),
     });
     if (!res.ok) {
@@ -34,7 +34,7 @@ export async function fetchUserById(id: number): Promise<User> {
 }
 
 export async function createUser(params: CreateUserParams): Promise<User> {
-    const res = await fetch(`${API_BASE}/api/users`, {
+    const res = await fetch(`${API_BASE}/users`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(params),
@@ -47,7 +47,7 @@ export async function createUser(params: CreateUserParams): Promise<User> {
 }
 
 export async function updateUser(id: number, data: { login?: string; password?: string; roleId?: number, name?: string, surname?: string, patronymic?: string }): Promise<User> {
-    const res = await fetch(`${API_BASE}/api/users/${id}`, {
+    const res = await fetch(`${API_BASE}/users/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
@@ -60,7 +60,7 @@ export async function updateUser(id: number, data: { login?: string; password?: 
 }
 
 export async function deleteUser(id: number): Promise<void> {
-    const res = await fetch(`${API_BASE}/api/users/${id}`, {
+    const res = await fetch(`${API_BASE}/users/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
     });

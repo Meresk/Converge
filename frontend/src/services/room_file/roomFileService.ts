@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // Получить файлы комнаты
 export async function fetchRoomFiles(roomId: number): Promise<RoomFile[]> {
-    const url = new URL(`${API_BASE}/api/files`);
+    const url = new URL(`${API_BASE}/files`);
     url.searchParams.append("room_id", roomId.toString());
 
     const res = await fetch(url.toString(), {
@@ -23,7 +23,7 @@ export async function fetchRoomFiles(roomId: number): Promise<RoomFile[]> {
 // Загрузить файл в комнату
 export async function uploadRoomFile(roomId: number, file: File): Promise<RoomFile> {
     const token = getToken();
-    const url = new URL(`${API_BASE}/api/files`);
+    const url = new URL(`${API_BASE}/files`);
     url.searchParams.append("room_id", roomId.toString());
 
     const formData = new FormData();
@@ -48,14 +48,14 @@ export async function uploadRoomFile(roomId: number, file: File): Promise<RoomFi
 
 // Скачать файл по id (можно использовать напрямую в href или через fetch + blob)
 export function getRoomFileDownloadUrl(fileId: number): string {
-    return `${API_BASE}/api/files/${fileId}`;
+    return `${API_BASE}/files/${fileId}`;
 }
 
 // Удалить файл по id
 export async function deleteRoomFile(fileId: number): Promise<void> {
     const token = getToken();
 
-    const res = await fetch(`${API_BASE}/api/files/${fileId}`, {
+    const res = await fetch(`${API_BASE}/files/${fileId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",

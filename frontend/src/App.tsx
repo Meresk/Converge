@@ -1,5 +1,5 @@
 import './App.css'
-import {Navigate, Route, Routes} from "react-router-dom";
+import {Route, Routes} from "react-router-dom";
 import RoleSelectPage from "./pages/RoleSelectPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import StudentPage from "./pages/StudentPage.tsx";
@@ -18,7 +18,6 @@ function App() {
           <Route path="/teacher" element={ <ProtectedRoute allowedRoles={['teacher']}> <TeacherPage /> </ProtectedRoute>} />
           <Route path="/admin" element={ <ProtectedRoute allowedRoles={['admin']} > <AdminPage /> </ProtectedRoute>} />
           <Route path="/room" element={ <RoomPage/> } />
-          <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
   )
 }

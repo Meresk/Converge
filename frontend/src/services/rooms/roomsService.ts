@@ -4,7 +4,7 @@ import type {CreateRoomParams, JoinRoomParams, JoinRoomResponse, Room} from "./t
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export async function fetchOpenRooms(): Promise<Room[]> {
-    const res = await fetch(`${API_BASE}/api/rooms/open`, {
+    const res = await fetch(`${API_BASE}/rooms/open`, {
         headers: {'Content-Type': 'application/json'},
     });
     if (!res.ok) {
@@ -16,7 +16,7 @@ export async function fetchOpenRooms(): Promise<Room[]> {
 
 export async function fetchOwnRooms(onlyOpen: boolean): Promise<Room[]> {
     const token = getToken();
-    const url = new URL(`${API_BASE}/api/rooms/own`);
+    const url = new URL(`${API_BASE}/rooms/own`);
     if (onlyOpen) {
         url.searchParams.append('onlyOpen', 'true');
     }
@@ -33,7 +33,7 @@ export async function fetchOwnRooms(onlyOpen: boolean): Promise<Room[]> {
 
 export async function createRoom(params: CreateRoomParams): Promise<Room> {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms`, {
+    const res = await fetch(`${API_BASE}/rooms`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : ``},
         body: JSON.stringify(params),
@@ -47,7 +47,7 @@ export async function createRoom(params: CreateRoomParams): Promise<Room> {
 
 export async function joinRoom(params: JoinRoomParams): Promise<string> {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms/join`, {
+    const res = await fetch(`${API_BASE}/rooms/join`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : ``},
         body: JSON.stringify(params),
@@ -67,7 +67,7 @@ export async function joinRoom(params: JoinRoomParams): Promise<string> {
 
 export async function toggleRoomStatus(id: number) {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms/${id}/toggle-status`, {
+    const res = await fetch(`${API_BASE}/rooms/${id}/toggle-status`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
     })
@@ -79,7 +79,7 @@ export async function toggleRoomStatus(id: number) {
 
 export async function updateRoom(id: number, data: { name?: string; password?: string}): Promise<Room> {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
+    const res = await fetch(`${API_BASE}/rooms/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
         body: JSON.stringify(data),
@@ -93,7 +93,7 @@ export async function updateRoom(id: number, data: { name?: string; password?: s
 
 export async function deleteRoom(id: number): Promise<void> {
     const token = getToken();
-    const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
+    const res = await fetch(`${API_BASE}/rooms/${id}`, {
         method: 'DELETE',
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
     });

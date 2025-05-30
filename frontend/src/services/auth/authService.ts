@@ -4,7 +4,7 @@ import {getDecodedToken} from "./storage.ts";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export async function loginRequest(params: LoginParams): Promise<LoginResponse> {
-    const res = await fetch(`${API_BASE}/api/login`, {
+    const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(params),

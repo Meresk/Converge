@@ -83,6 +83,7 @@ func main() {
 	roomFileH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
+
 	// Запуск сервера
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	if err := app.Listen(addr); err != nil {
