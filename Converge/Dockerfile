@@ -19,9 +19,6 @@ RUN go build -o main ./cmd/
 # Этап запуска
 FROM alpine:latest
 
-# Установим ca-certificates для HTTPS
-RUN apk --no-cache add ca-certificates
-
 WORKDIR /root/
 
 # Копируем бинарник и другие нужные файлы

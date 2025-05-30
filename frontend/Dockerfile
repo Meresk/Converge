@@ -1,26 +1,19 @@
-# Этап сборки
-FROM node:20-alpine AS builder
-
+# First stage
+FROM node:20-alpine as build
 WORKDIR /app
-COPY . .
-
-# Устанавливаем зависимости и собираем проект
+COPY package*.json ./
 RUN npm install
+COPY . .
 RUN npm run build
 
-# Этап запуска (используем сервер serve)
-FROM node:20-alpine
+# Second stage
+FROM nginx:stable-alpine
+RUN rm -rf /etc/nginx/conf.d/default.conf
 
-WORKDIR /app
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Устанавливаем минимальный http-сервер
-RUN npm install -g serve
+RUN chown -R nginx:nginx /usr/share/nginx/html
 
-# Копируем билд из предыдущего этапа
-COPY --from=builder /app/dist ./dist
-
-# Открываем порт, на котором будет доступен фронт
-EXPOSE 5173
-
-# Запускаем статический сервер
-CMD ["serve", "-s", "dist", "-l", "5173"]
+EXPOSE 3000
+CMD [ "nginx", "-g", "daemon off;" ]
