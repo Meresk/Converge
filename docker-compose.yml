@@ -60,7 +60,7 @@ services:
     volumes:
       - ./livekit.yaml:/etc/livekit/livekit.yaml:ro
     ports:
-      - "50000-50100:50000-50100/udp"
+      - "50000-51000:50000-51000/udp"
     command: ["--config", "/etc/livekit/livekit.yaml"]
     depends_on:
       - redis
