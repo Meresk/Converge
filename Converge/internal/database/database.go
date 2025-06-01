@@ -23,7 +23,7 @@ func Migrate(db *gorm.DB) error {
 		return errors.New("database instance is nil")
 	}
 
-	if err := db.AutoMigrate(&model.User{}, &model.Role{}, &model.Room{}, &model.Participant{}, &model.Message{}, &model.RoomFile{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.Role{}, &model.Room{}, &model.RoomFile{}); err != nil {
 		return errors.New("migration failed")
 	}
 

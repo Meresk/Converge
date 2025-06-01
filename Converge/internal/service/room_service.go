@@ -26,15 +26,14 @@ type RoomService interface {
 }
 
 type roomService struct {
-	roomRepo        repository.RoomRepository
-	participantRepo repository.ParticipantRepository
-	apiKey          string
-	apiSecret       string
-	lkClient        *lksdk.RoomServiceClient
+	roomRepo  repository.RoomRepository
+	apiKey    string
+	apiSecret string
+	lkClient  *lksdk.RoomServiceClient
 }
 
-func NewRoomService(rr repository.RoomRepository, pr repository.ParticipantRepository, apiKey, apiSecret string, lkCl *lksdk.RoomServiceClient) RoomService {
-	return &roomService{roomRepo: rr, participantRepo: pr, apiKey: apiKey, apiSecret: apiSecret, lkClient: lkCl}
+func NewRoomService(rr repository.RoomRepository, apiKey, apiSecret string, lkCl *lksdk.RoomServiceClient) RoomService {
+	return &roomService{roomRepo: rr, apiKey: apiKey, apiSecret: apiSecret, lkClient: lkCl}
 }
 
 func (s *roomService) GetAllOpenRooms() ([]*model.Room, error) {
@@ -63,16 +62,6 @@ func (s *roomService) JoinRoom(roomID int64, nickname, password string, isAuthor
 		if p.Identity == nickname {
 			return "", errors.New("user with this nickname already in room")
 		}
-	}
-
-	p := &model.Participant{
-		Nickname: nickname,
-		RoomID:   roomID,
-		JoinedAt: time.Now(),
-	}
-	err = s.participantRepo.Create(p)
-	if err != nil {
-		return "", err
 	}
 
 	at := auth.NewAccessToken(s.apiKey, s.apiSecret)

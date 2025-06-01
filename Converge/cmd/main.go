@@ -47,13 +47,12 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
 	roomRepo := repository.NewRoomRepository(db)
-	participantRepo := repository.NewParticipantRepository(db)
 	roomFileRepo := repository.NewRoomFileRepository(db)
 
 	// Сервисы
 	userSvc := service.NewUserService(userRepo, roleRepo)
 	roleSvc := service.NewRoleService(roleRepo)
-	roomSvc := service.NewRoomService(roomRepo, participantRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret, lkClient)
+	roomSvc := service.NewRoomService(roomRepo, cfg.LiveKitApiKey, cfg.LiveKitApiSecret, lkClient)
 	roomFileSvc := service.NewRoomFileService(roomFileRepo, cfg.StoragePath)
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 
@@ -82,7 +81,6 @@ func main() {
 	roomH.Register(app, authMW.RequireTeacher(), authMW.RequireAdmin())
 	roomFileH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
-
 
 	// Запуск сервера
 	addr := fmt.Sprintf(":%s", cfg.Port)
