@@ -60,7 +60,7 @@ services:
     volumes:
       - ./livekit.yaml:/etc/livekit/livekit.yaml:ro
     ports:
-      - "50000-51000:50000-51000/udp"
+      - "50000-50500:50000-50500/udp"
     command: ["--config", "/etc/livekit/livekit.yaml"]
     depends_on:
       - redis
@@ -73,12 +73,13 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: afniseurqhweirb1203947yhqeir872314la
       MYSQL_DATABASE: converge_app
       MYSQL_USER: user
-      MYSQL_PASSWORD: user
+      MYSQL_PASSWORD: jsmthebest_aboba_yakov13
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d/mysql-init
     networks:
        - converge-net
     healthcheck:
