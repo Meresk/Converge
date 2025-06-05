@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -7,17 +7,20 @@ import {
     IconButton,
     Tooltip,
     Container,
+    TextField,
 } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import SearchIcon from '@mui/icons-material/Search';
 import { fetchOpenRooms, joinRoom } from '../services/rooms/roomsService.ts';
 import type { Room } from '../services/rooms/types.ts';
 import JoinRoomDialog from "../components/dialogs/JoinRoomDialog.tsx";
 import RoomCard from "../components/RoomCard.tsx";
-import {customProfanityWords} from "../types/customProfanityWords.ts";
-
+import { customProfanityWords } from "../types/customProfanityWords.ts";
+import CloseIcon from '@mui/icons-material/Close';
 
 export default function StudentPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
     const [joinModalOpen, setJoinModalOpen] = useState(false);
@@ -27,6 +30,7 @@ export default function StudentPage() {
     const [joinPassword, setJoinPassword] = useState('');
     const [joinNameError, setJoinNameError] = useState('');
     const [joinPasswordError, setJoinPasswordError] = useState('');
+    const [showSearch, setShowSearch] = useState(false);
 
     useEffect(() => {
         loadRooms();
@@ -82,7 +86,6 @@ export default function StudentPage() {
                 } else if (message.includes('Неверный пароль')) {
                     setJoinPasswordError('Неверный пароль');
                 } else {
-                    // fallback, например, можно показать где-нибудь в alert или toast
                     setJoinNameError(message);
                 }
             } else {
@@ -95,10 +98,18 @@ export default function StudentPage() {
         navigate('/');
     };
 
+    const filteredRooms = useMemo(() => {
+        const query = searchQuery.toLowerCase();
+        return rooms.filter((room) =>
+            room.name.toLowerCase().includes(query) ||
+            `${room.ownerSurname} ${room.ownerName} ${room.ownerPatronymic}`.toLowerCase().includes(query)
+        );
+    }, [rooms, searchQuery]);
+
     return (
         <Box
             sx={{
-                minHeight: 'calc(100vh - 32px - 64px)', // pt: 4 (32px) и pb: 8 (64px)
+                minHeight: 'calc(100vh - 32px - 64px)',
                 bgcolor: '#121212',
                 pt: 4,
                 pb: 8,
@@ -123,13 +134,75 @@ export default function StudentPage() {
                 </IconButton>
             </Tooltip>
 
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: 16,
+                    right: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    zIndex: 10,
+                }}
+            >
+                <Box
+                    sx={{
+                        transition: 'width 0.4s ease, opacity 0.4s ease',
+                        overflow: 'hidden',
+                        width: showSearch ? 250 : 0,
+                        opacity: showSearch ? 1 : 0,
+                        mr: showSearch ? 1 : 0,
+                    }}
+                >
+                    <TextField
+                        size="small"
+                        placeholder="Поиск..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        autoFocus
+                        InputProps={{
+                            sx: {
+                                bgcolor: '#1e1e1e',
+                                borderRadius: 2,
+                                color: 'white',
+                                height: 40,
+                            },
+                        }}
+                        sx={{
+                            width: '100%',
+                            '& .MuiOutlinedInput-root': {
+                                '& fieldset': { borderColor: '#444' },
+                                '&:hover fieldset': { borderColor: '#2ecc71' },
+                                '&.Mui-focused fieldset': { borderColor: '#2ecc71' },
+                            },
+                            '& input': { color: 'white' },
+                        }}
+                    />
+                </Box>
+
+                <IconButton
+                    onClick={() => setShowSearch((prev) => !prev)}
+                    sx={{
+                        color: 'white',
+                        bgcolor: 'rgba(255,255,255,0.1)',
+                        '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                        transition: 'transform 0.3s ease',
+                    }}
+                >
+                    {showSearch ? <CloseIcon /> : <SearchIcon />}
+                </IconButton>
+            </Box>
+
+
+
+
             <Container maxWidth="xl">
+
                 <Typography
                     variant="h4"
                     align="center"
                     color="white"
                     sx={{
-                        mb: 5,
+                        mb: 3,
                         fontWeight: 'bold',
                         letterSpacing: '0.05em',
                         textTransform: 'uppercase',
@@ -138,9 +211,11 @@ export default function StudentPage() {
                     Список комнат
                 </Typography>
 
+
                 <Grid container spacing={4} justifyContent="center">
-                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                    {rooms.map((room, index) => ( // @ts-expect-error
+                    {filteredRooms.map((room, index) => (
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         <Grid
                             item
                             xs={12}

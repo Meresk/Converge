@@ -399,7 +399,10 @@ export default function TeacherPage() {
 
     const drawerContent = (
         <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="h6" mb={2}>
+            <Typography align="center" variant="h6" mb={2} sx={{
+                fontWeight: 'bold',
+                textShadow: '1px 1px 5px rgba(0,0,0,0.5)',
+            }}>
                 Преподаватель
             </Typography>
 
