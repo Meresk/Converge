@@ -38,7 +38,10 @@ export default function RoleSelectPage() {
                 minHeight: '100vh',
             }}
         >
-            <Typography variant="h4" align="center" gutterBottom>
+            <Typography variant="h4" align="center" gutterBottom sx={{
+                fontWeight: 'bold',
+                textShadow: '1px 1px 5px rgba(0,0,0,0.5)',
+            }}>
                 Кто вы?
             </Typography>
 
@@ -82,6 +85,10 @@ function RoleCard({ onClick, imgSrc, label }: { onClick: () => void, imgSrc: str
                 },
                 '&:hover img': {
                     transform: 'scale(1.05)',
+                },
+                '&:active': {
+                    transform: 'scale(0.95)',
+                    transition: 'transform 0.1s',
                 },
             }}
         >

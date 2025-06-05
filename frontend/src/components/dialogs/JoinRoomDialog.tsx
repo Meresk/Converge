@@ -31,10 +31,18 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                                                            setJoinNameError,
                                                            setJoinPasswordError,
                                                        }) => {
+    // Обработчик сабмита формы
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();  // чтобы страница не перезагружалась
+        onJoin();            // вызываем переданный коллбек подключения
+    };
+
     return (
         <Modal open={open} onClose={onClose} closeAfterTransition>
             <Fade in={open}>
                 <Box
+                    component="form"  // оборачиваем в форму
+                    onSubmit={handleSubmit}  // ловим сабмит формы
                     sx={{
                         position: 'absolute',
                         top: '50%',
@@ -75,6 +83,7 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
                             },
                         }}
+                        autoFocus
                     />
 
                     {isProtected && (
@@ -120,7 +129,7 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({
                         </Button>
                         <Button
                             variant="contained"
-                            onClick={onJoin}
+                            type="submit"  // Важно! Тип кнопки submit
                             color="primary"
                             sx={{
                                 fontWeight: 'bold',
