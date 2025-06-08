@@ -82,6 +82,16 @@ func main() {
 	roomFileH.Register(app, authMW.RequireTeacher())
 	authH.Register(app)
 
+	// CA
+	app.Get("/api/cert", func(c *fiber.Ctx) error {
+		filePath := "./ca.crt"
+
+		c.Set("Content-Type", "application/x-pem-file")
+		c.Set("Content-Disposition", "attachment; filename=\""+filePath+"\"")
+
+		return c.SendFile(filePath)
+	})
+
 	// Запуск сервера
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	if err := app.Listen(addr); err != nil {
