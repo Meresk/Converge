@@ -63,9 +63,32 @@
 
 ## Скриншоты
 
-<!--
-Здесь будут расположены скриншоты, демонстрирующие интерфейс и функциональность приложения.
--->
+### Главная страница
+<img width="1271" height="766" alt="image" src="https://github.com/user-attachments/assets/b9eba3ad-2f60-4ab3-a676-043316f8229a" />
+
+### Страница студента
+<img width="2548" height="1224" alt="image" src="https://github.com/user-attachments/assets/5d9c9bc9-1701-4042-a5fb-c0a04fe301dd" />
+
+### Страница входа для преподавателя / администратора
+<img width="1330" height="884" alt="image" src="https://github.com/user-attachments/assets/5a8dc4cc-1934-4cf5-90d1-4aa37b259a1f" />
+
+### Страница преподавателя
+<img width="1446" height="783" alt="image" src="https://github.com/user-attachments/assets/dbaa0d14-af94-46b0-bb57-f38b61d2e93e" />
+
+### Страница преподавателя - добавления комнаты
+<img width="1447" height="784" alt="image" src="https://github.com/user-attachments/assets/26703252-a0b8-48cf-ba40-831615f1a7fb" />
+
+### Страница преподавателя - табличный вид комнат с доп. функциями и информацией
+<img width="1754" height="910" alt="image" src="https://github.com/user-attachments/assets/73250884-d640-4fba-98c5-d0eda05655c1" />
+
+### Страница администратора
+<img width="1908" height="943" alt="image" src="https://github.com/user-attachments/assets/e9099f11-2dc5-4f75-8634-f64ae4b6b3f6" />
+
+### Вид внутри комнаты от преподавателя
+<img width="2539" height="1279" alt="image" src="https://github.com/user-attachments/assets/d1fd9038-b53c-420e-9d8c-f8daa680c046" />
+
+### Вид внутри комнаты от студента
+<img width="2555" height="1276" alt="image" src="https://github.com/user-attachments/assets/6e0d0a28-c7b8-4d5a-adb6-8efdf0624957" />
 
 ---
 
