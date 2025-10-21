@@ -28,8 +28,8 @@ func Load() *Config {
 		DatabaseDSN:      getEnv("DATABASE_DSN", "user:user@tcp(localhost:3307)/converge_app?parseTime=true"),
 		JWTSecret:        getEnv("JWT_SECRET_KEY", "DEVELOP_JWT_SECRET_KEY"),
 		StoragePath:      getEnv("STORAGE_PATH", "./storage"),
-		AllowOrigins:     getEnv("CORS_ALLOW_ORIGINS", "http://localhost:8080,http://localhost:5173"),
-		AllowMethods:     getEnv("CORS_ALLOW_METHODS", "GET,POST,PUT,DELETE"),
+		AllowOrigins:     getEnv("CORS_ALLOW_ORIGINS", "http://localhost:5173"),
+		AllowMethods:     getEnv("CORS_ALLOW_METHODS", "GET,POST,PUT,DELETE,OPTIONS"),
 		AllowHeaders:     getEnv("CORS_ALLOW_HEADERS", "Content-Type,Authorization"),
 	}
 
