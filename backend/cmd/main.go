@@ -9,6 +9,7 @@ import (
 	"Converge/internal/seed"
 	"Converge/internal/service"
 	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -17,10 +18,7 @@ import (
 
 func main() {
 	// Загрузка конфигурации
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}
+	cfg := config.Load()
 
 	// Подключение к БД
 	db, err := database.NewConnection(cfg.DatabaseDSN)
