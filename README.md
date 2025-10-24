@@ -68,7 +68,7 @@ npm run dev
 5. Запустите одной командой: docker compose up -d из папки deploy/prod.
 ---
 
-<span style="font-size: 1.6em;"> 🎬 **Чуть-чуть посмотрим?** </span>
+### 🎬 **Чуть-чуть посмотрим?**
 
 ### Главная страница
 <img width="1271" height="766" alt="image" src="https://github.com/user-attachments/assets/b9eba3ad-2f60-4ab3-a676-043316f8229a" />
