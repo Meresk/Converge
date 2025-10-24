@@ -25,13 +25,13 @@ services:
 
   backend:
     build:
-      context: ./Converge
+      context: ../../backend
       dockerfile: Dockerfile
     restart: always
     env_file:
       - .env
     volumes:
-      - ./Converge/storage:/root/storage
+      - ../../Converge/storage:/root/storage
     depends_on:
       mysql:
         condition: service_healthy
@@ -43,10 +43,10 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../../frontend
       dockerfile: Dockerfile
     env_file:
-      - ./frontend/.env
+      - ../../frontend/.env
     depends_on:
       - backend
       - livekit
@@ -73,13 +73,12 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: afniseurqhweirb1203947yhqeir872314la
+      MYSQL_ROOT_PASSWORD: example_password
       MYSQL_DATABASE: converge_app
       MYSQL_USER: user
-      MYSQL_PASSWORD: jsmthebest_aboba_yakov13
+      MYSQL_PASSWORD: example_password
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d/mysql-init
     networks:
        - converge-net
     healthcheck:

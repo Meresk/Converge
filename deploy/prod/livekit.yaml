@@ -5,10 +5,10 @@ bind_addresses:
 rtc:
   node_ip: "192.168.0.16"
   tcp_port: 7881
-  port_range_start: 50000
-  port_range_end: 50100
+  port_range_start: 50000 # dont change this
+  port_range_end: 50100 # for ~50 users
   use_external_ip: false
-  enable_loopback_candidate: true  # включено для p2p в локалке
+  enable_loopback_candidate: true
 
 redis:
   address: redis:6379
@@ -25,5 +25,5 @@ ingress:
   whip_base_url: ""
 
 keys:
-  LK1234567890: abcdef1234567890abcdef1234567890
+  LK1234567890: abcdef1234567890abcdef1234567890 # example key and secret
 

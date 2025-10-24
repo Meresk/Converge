@@ -1,3 +1,0 @@
-CREATE USER 'user'@'%' IDENTIFIED BY 'jsmthebest_aboba_yakov13';
-GRANT ALL PRIVILEGES ON converge_app.* TO 'user'@'%';
-FLUSH PRIVILEGES;
